@@ -44,6 +44,10 @@ func (n PublisherName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+func (n PublisherName) String() string {
+	return n.Name()
+}
+
 type AuthorName struct {
 	AuthorID string
 }
@@ -77,6 +81,10 @@ func (n AuthorName) Name() string {
 
 func (n AuthorName) FullName() string {
 	return "//example.com/" + n.Name()
+}
+
+func (n AuthorName) String() string {
+	return n.Name()
 }
 
 type PublisherBookName struct {
@@ -113,6 +121,10 @@ func (n PublisherBookName) Name() string {
 
 func (n PublisherBookName) FullName() string {
 	return "//example.com/" + n.Name()
+}
+
+func (n PublisherBookName) String() string {
+	return n.Name()
 }
 
 func (n PublisherBookName) Parent() PublisherName {
@@ -159,6 +171,10 @@ func (n AuthorBookName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+func (n AuthorBookName) String() string {
+	return n.Name()
+}
+
 func (n AuthorBookName) Parent() AuthorName {
 	return AuthorName{
 		AuthorID: n.AuthorID,
@@ -170,6 +186,7 @@ func (n AuthorBookName) mustEmbedBookName() {}
 type BookName interface {
 	Name() string
 	FullName() string
+	String() string
 	mustEmbedBookName()
 }
 

@@ -43,6 +43,10 @@ func (n PersonName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+func (n PersonName) String() string {
+	return n.Name()
+}
+
 func (x *Person) ParsePersonName() (PersonName, error) {
 	return ParsePersonName(x.PersonName)
 }

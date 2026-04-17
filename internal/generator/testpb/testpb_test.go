@@ -1,6 +1,7 @@
 package testpb_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/protoc-contrib/protoc-gen-go-resource/internal/generator/testpb/external"
@@ -65,6 +66,12 @@ func TestSimple_Name(t *testing.T) {
 	}
 	if got, want := n.FullName(), "//example.com/things/foo"; got != want {
 		t.Errorf("FullName: got %q, want %q", got, want)
+	}
+	// String() satisfies fmt.Stringer and matches Name() — so %v and %s
+	// print the relative name, which is what formatters typically want.
+	var s fmt.Stringer = n
+	if got, want := s.String(), "things/foo"; got != want {
+		t.Errorf("String: got %q, want %q", got, want)
 	}
 }
 

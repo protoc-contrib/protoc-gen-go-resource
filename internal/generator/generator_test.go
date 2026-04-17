@@ -86,6 +86,7 @@ var _ = Describe("generator.Generate", func() {
 		Expect(out).To(ContainSubstring("func ParseFullThingName(s string) (ThingName, error)"))
 		Expect(out).To(ContainSubstring("func (n ThingName) Name() string"))
 		Expect(out).To(ContainSubstring("func (n ThingName) FullName() string"))
+		Expect(out).To(ContainSubstring("func (n ThingName) String() string"))
 		Expect(out).To(ContainSubstring("func (x *Thing) ParseName() (ThingName, error)"))
 		// The "Parsed" prefix must not leak into generated identifiers.
 		Expect(out).NotTo(ContainSubstring("ParsedThingName"))
@@ -112,6 +113,8 @@ var _ = Describe("generator.Generate", func() {
 		Expect(out).To(ContainSubstring("type AuthorBookName struct"))
 		Expect(out).To(ContainSubstring("type BookName interface {"))
 		Expect(out).To(ContainSubstring("mustEmbedBookName()"))
+		// The sealed interface includes String() so it satisfies fmt.Stringer.
+		Expect(out).To(MatchRegexp(`type BookName interface \{[^}]*String\(\) string`))
 		Expect(out).To(ContainSubstring("func ParseBookName(s string) (BookName, error)"))
 		Expect(out).To(ContainSubstring("func ParseFullBookName(s string) (BookName, error)"))
 		Expect(out).To(ContainSubstring("func ParsePublisherBookName(s string) (PublisherBookName, error)"))

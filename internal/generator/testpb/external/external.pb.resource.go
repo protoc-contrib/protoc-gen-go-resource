@@ -42,3 +42,7 @@ func (n ExternalName) Name() string {
 func (n ExternalName) FullName() string {
 	return "//example.com/" + n.Name()
 }
+
+func (n ExternalName) String() string {
+	return n.Name()
+}

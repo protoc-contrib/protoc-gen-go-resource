@@ -43,6 +43,10 @@ func (n ThingName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+func (n ThingName) String() string {
+	return n.Name()
+}
+
 type ProjectName struct {
 	ProjectID string
 }
@@ -76,6 +80,10 @@ func (n ProjectName) Name() string {
 
 func (n ProjectName) FullName() string {
 	return "//example.com/" + n.Name()
+}
+
+func (n ProjectName) String() string {
+	return n.Name()
 }
 
 type ProjectThingName struct {
@@ -119,6 +127,10 @@ func (n ProjectThingName) Name() string {
 
 func (n ProjectThingName) FullName() string {
 	return "//example.com/" + n.Name()
+}
+
+func (n ProjectThingName) String() string {
+	return n.Name()
 }
 
 func (n ProjectThingName) Parent() ProjectName {

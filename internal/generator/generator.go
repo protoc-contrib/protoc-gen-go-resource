@@ -315,6 +315,11 @@ func emitPatternStruct(g *protogen.GeneratedFile, r *resource, typeName, funcNam
 	g.P("}")
 	g.P()
 
+	g.P("func (n ", typeName, ") String() string {")
+	g.P("return n.Name()")
+	g.P("}")
+	g.P()
+
 	if parent != nil {
 		emitParent(g, typeName, parent)
 	}
@@ -392,6 +397,7 @@ func emitMultiPatternInterface(g *protogen.GeneratedFile, r *resource, embed str
 	g.P("type ", r.ParsedType.GoName, " interface {")
 	g.P("Name() string")
 	g.P("FullName() string")
+	g.P("String() string")
 	g.P(embed, "()")
 	g.P("}")
 	g.P()

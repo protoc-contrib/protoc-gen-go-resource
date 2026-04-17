@@ -45,6 +45,10 @@ func (n FooName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+func (n FooName) String() string {
+	return n.Name()
+}
+
 type BarName struct {
 	BarID string
 }
@@ -78,6 +82,10 @@ func (n BarName) Name() string {
 
 func (n BarName) FullName() string {
 	return "//example.com/" + n.Name()
+}
+
+func (n BarName) String() string {
+	return n.Name()
 }
 
 func (x *Foo) ParseName() (FooName, error) {
