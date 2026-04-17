@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/protoc-contrib/protoc-gen-go-resource/compare/v1.1.0...v1.2.0) (2026-04-17)
+
+
+### Features
+
+* replace Name() with String() and add text marshaling ([2400f21](https://github.com/protoc-contrib/protoc-gen-go-resource/commit/2400f213e2c1e7403ebaa11d5830c8f69f893690))
+
 ## [1.1.0](https://github.com/protoc-contrib/protoc-gen-go-resource/compare/v1.0.0...v1.1.0) (2026-04-17)
 
 
