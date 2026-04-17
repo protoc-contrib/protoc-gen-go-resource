@@ -8,79 +8,145 @@ import (
 	strings "strings"
 )
 
-type ParsedThingName struct {
+type ThingName struct {
 	ThingID string
 }
 
-func ParseThingName(s string) (ParsedThingName, error) {
+func ParseThingName(s string) (ThingName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 2 {
-		return ParsedThingName{}, fmt.Errorf("parse %q: bad number of segments, want: 2, got: %d", s, len(parts))
+		return ThingName{}, fmt.Errorf("parse %q: bad number of segments, want: 2, got: %d", s, len(parts))
 	}
-	var out ParsedThingName
+	var out ThingName
 	if parts[0] != "things" {
-		return ParsedThingName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "things", parts[0])
+		return ThingName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "things", parts[0])
+	}
+	if parts[1] == "" {
+		return ThingName{}, fmt.Errorf("parse %q: empty value for segment 1", s)
 	}
 	out.ThingID = parts[1]
 	return out, nil
 }
 
-func ParseFullThingName(s string) (ParsedThingName, error) {
+func ParseFullThingName(s string) (ThingName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
-		return ParsedThingName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
+		return ThingName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
 	}
 	return ParseThingName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-func (n ParsedThingName) Name() string {
+func (n ThingName) Name() string {
 	return "things/" + n.ThingID
 }
 
-func (n ParsedThingName) FullName() string {
+func (n ThingName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
-type ParsedProjectThingName struct {
+type ProjectName struct {
+	ProjectID string
+}
+
+func ParseProjectName(s string) (ProjectName, error) {
+	parts := strings.Split(s, "/")
+	if len(parts) != 2 {
+		return ProjectName{}, fmt.Errorf("parse %q: bad number of segments, want: 2, got: %d", s, len(parts))
+	}
+	var out ProjectName
+	if parts[0] != "projects" {
+		return ProjectName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "projects", parts[0])
+	}
+	if parts[1] == "" {
+		return ProjectName{}, fmt.Errorf("parse %q: empty value for segment 1", s)
+	}
+	out.ProjectID = parts[1]
+	return out, nil
+}
+
+func ParseFullProjectName(s string) (ProjectName, error) {
+	if !strings.HasPrefix(s, "//example.com/") {
+		return ProjectName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
+	}
+	return ParseProjectName(strings.TrimPrefix(s, "//example.com/"))
+}
+
+func (n ProjectName) Name() string {
+	return "projects/" + n.ProjectID
+}
+
+func (n ProjectName) FullName() string {
+	return "//example.com/" + n.Name()
+}
+
+type ProjectThingName struct {
 	ProjectID string
 	ThingID   string
 }
 
-func ParseProjectThingName(s string) (ParsedProjectThingName, error) {
+func ParseProjectThingName(s string) (ProjectThingName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 4 {
-		return ParsedProjectThingName{}, fmt.Errorf("parse %q: bad number of segments, want: 4, got: %d", s, len(parts))
+		return ProjectThingName{}, fmt.Errorf("parse %q: bad number of segments, want: 4, got: %d", s, len(parts))
 	}
-	var out ParsedProjectThingName
+	var out ProjectThingName
 	if parts[0] != "projects" {
-		return ParsedProjectThingName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "projects", parts[0])
+		return ProjectThingName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "projects", parts[0])
+	}
+	if parts[1] == "" {
+		return ProjectThingName{}, fmt.Errorf("parse %q: empty value for segment 1", s)
 	}
 	out.ProjectID = parts[1]
 	if parts[2] != "things" {
-		return ParsedProjectThingName{}, fmt.Errorf("parse %q: bad segment 2, want: %q, got: %q", s, "things", parts[2])
+		return ProjectThingName{}, fmt.Errorf("parse %q: bad segment 2, want: %q, got: %q", s, "things", parts[2])
+	}
+	if parts[3] == "" {
+		return ProjectThingName{}, fmt.Errorf("parse %q: empty value for segment 3", s)
 	}
 	out.ThingID = parts[3]
 	return out, nil
 }
 
-func ParseFullProjectThingName(s string) (ParsedProjectThingName, error) {
+func ParseFullProjectThingName(s string) (ProjectThingName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
-		return ParsedProjectThingName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
+		return ProjectThingName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
 	}
 	return ParseProjectThingName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-func (n ParsedProjectThingName) Name() string {
+func (n ProjectThingName) Name() string {
 	return "projects/" + n.ProjectID + "/things/" + n.ThingID
 }
 
-func (n ParsedProjectThingName) FullName() string {
+func (n ProjectThingName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
-func (x *Thing) ParseName() (ParsedThingName, error) {
+func (n ProjectThingName) Parent() ProjectName {
+	return ProjectName{
+		ProjectID: n.ProjectID,
+	}
+}
+
+func (x *Thing) ParseName() (ThingName, error) {
 	return ParseThingName(x.Name)
 }
 
-func (x *ProjectThing) ParseName() (ParsedProjectThingName, error) {
+func (x *Thing) ParseFullName() (ThingName, error) {
+	return ParseFullThingName(x.Name)
+}
+
+func (x *Project) ParseName() (ProjectName, error) {
+	return ParseProjectName(x.Name)
+}
+
+func (x *Project) ParseFullName() (ProjectName, error) {
+	return ParseFullProjectName(x.Name)
+}
+
+func (x *ProjectThing) ParseName() (ProjectThingName, error) {
 	return ParseProjectThingName(x.Name)
+}
+
+func (x *ProjectThing) ParseFullName() (ProjectThingName, error) {
+	return ParseFullProjectThingName(x.Name)
 }

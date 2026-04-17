@@ -42,6 +42,29 @@ The code generator has been rewritten on top of
 - **Sensible skips** — `child_type` and wildcard (`"*"`) references are
   silently skipped because the generator has no concrete pattern to bind
   them to.
+- **Runtime validation** — generated parsers reject empty variable
+  segments (e.g. `things/`) per AIP-122.
+- **`ParseFullName()` on messages** — resource messages get both
+  `ParseName()` (short form) and `ParseFullName()` (full
+  `//service/...` form).
+
+## Options
+
+Pass plugin options via `--go-resource_opt=key=value` (protoc) or the
+`opt:` list under the plugin entry in `buf.gen.yaml`.
+
+| Option                  | Default | Effect                                                                                                                                |
+| ----------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `allow_unresolved_refs` | `false` | When `true`, `google.api.resource_reference` fields whose target type isn't in the compilation unit are skipped instead of erroring.  |
+
+## Cross-package references
+
+If a field has `(google.api.resource_reference).type = "example.com/Thing"`
+and `Thing` is defined in a different `.proto` file, the referent's file
+**must be imported** by the referring file — even if no proto symbol from
+it is used — so the generator can see both resources at codegen time. See
+[`internal/generator/testpb/reference/reference.proto`](internal/generator/testpb/reference/reference.proto)
+for a worked example.
 
 ## Installation
 
@@ -141,6 +164,7 @@ func (n ParsedBookName) Name() string     { return "publishers/" + n.PublisherID
 func (n ParsedBookName) FullName() string { return "//example.com/" + n.Name() }
 
 func (x *Book) ParseName() (ParsedBookName, error)            { /* delegates to ParseBookName */ }
+func (x *Book) ParseFullName() (ParsedBookName, error)        { /* delegates to ParseFullBookName */ }
 func (x *Book) ParseAuthor() (ParsedAuthorName, error)        { /* delegates to ParseAuthorName */ }
 ```
 

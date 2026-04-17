@@ -22,9 +22,99 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// Publisher and Author are Book's possible parents — one per pattern.
+type Publisher struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Publisher) Reset() {
+	*x = Publisher{}
+	mi := &file_multipattern_multipattern_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Publisher) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Publisher) ProtoMessage() {}
+
+func (x *Publisher) ProtoReflect() protoreflect.Message {
+	mi := &file_multipattern_multipattern_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Publisher.ProtoReflect.Descriptor instead.
+func (*Publisher) Descriptor() ([]byte, []int) {
+	return file_multipattern_multipattern_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Publisher) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type Author struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Author) Reset() {
+	*x = Author{}
+	mi := &file_multipattern_multipattern_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Author) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Author) ProtoMessage() {}
+
+func (x *Author) ProtoReflect() protoreflect.Message {
+	mi := &file_multipattern_multipattern_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Author.ProtoReflect.Descriptor instead.
+func (*Author) Descriptor() ([]byte, []int) {
+	return file_multipattern_multipattern_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Author) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
 // Book exercises a resource with more than one pattern. The generator emits a
 // sealed interface and one struct per pattern; ParseBookName tries each in
-// order.
+// order. Each variant's Parent() returns the matching parent resource
+// (PublisherName or AuthorName).
 type Book struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -34,7 +124,7 @@ type Book struct {
 
 func (x *Book) Reset() {
 	*x = Book{}
-	mi := &file_multipattern_multipattern_proto_msgTypes[0]
+	mi := &file_multipattern_multipattern_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -46,7 +136,7 @@ func (x *Book) String() string {
 func (*Book) ProtoMessage() {}
 
 func (x *Book) ProtoReflect() protoreflect.Message {
-	mi := &file_multipattern_multipattern_proto_msgTypes[0]
+	mi := &file_multipattern_multipattern_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -59,7 +149,7 @@ func (x *Book) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Book.ProtoReflect.Descriptor instead.
 func (*Book) Descriptor() ([]byte, []int) {
-	return file_multipattern_multipattern_proto_rawDescGZIP(), []int{0}
+	return file_multipattern_multipattern_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Book) GetName() string {
@@ -73,7 +163,13 @@ var File_multipattern_multipattern_proto protoreflect.FileDescriptor
 
 const file_multipattern_multipattern_proto_rawDesc = "" +
 	"\n" +
-	"\x1fmultipattern/multipattern.proto\x12\x12tests.multipattern\x1a\x19google/api/resource.proto\"u\n" +
+	"\x1fmultipattern/multipattern.proto\x12\x12tests.multipattern\x1a\x19google/api/resource.proto\"S\n" +
+	"\tPublisher\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name:2\xeaA/\n" +
+	"\x15example.com/Publisher\x12\x16publishers/{publisher}\"G\n" +
+	"\x06Author\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name:)\xeaA&\n" +
+	"\x12example.com/Author\x12\x10authors/{author}\"u\n" +
 	"\x04Book\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name:Y\xeaAV\n" +
 	"\x10example.com/Book\x12#publishers/{publisher}/books/{book}\x12\x1dauthors/{author}/books/{book}BYZWgithub.com/protoc-contrib/protoc-gen-go-resource/internal/generator/testpb/multipatternb\x06proto3"
@@ -90,9 +186,11 @@ func file_multipattern_multipattern_proto_rawDescGZIP() []byte {
 	return file_multipattern_multipattern_proto_rawDescData
 }
 
-var file_multipattern_multipattern_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+var file_multipattern_multipattern_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_multipattern_multipattern_proto_goTypes = []any{
-	(*Book)(nil), // 0: tests.multipattern.Book
+	(*Publisher)(nil), // 0: tests.multipattern.Publisher
+	(*Author)(nil),    // 1: tests.multipattern.Author
+	(*Book)(nil),      // 2: tests.multipattern.Book
 }
 var file_multipattern_multipattern_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -113,7 +211,7 @@ func file_multipattern_multipattern_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_multipattern_multipattern_proto_rawDesc), len(file_multipattern_multipattern_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   1,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

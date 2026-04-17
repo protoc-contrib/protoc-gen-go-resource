@@ -8,38 +8,45 @@ import (
 	strings "strings"
 )
 
-type ParsedPersonName struct {
+type PersonName struct {
 	PersonID string
 }
 
-func ParsePersonName(s string) (ParsedPersonName, error) {
+func ParsePersonName(s string) (PersonName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 2 {
-		return ParsedPersonName{}, fmt.Errorf("parse %q: bad number of segments, want: 2, got: %d", s, len(parts))
+		return PersonName{}, fmt.Errorf("parse %q: bad number of segments, want: 2, got: %d", s, len(parts))
 	}
-	var out ParsedPersonName
+	var out PersonName
 	if parts[0] != "persons" {
-		return ParsedPersonName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "persons", parts[0])
+		return PersonName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "persons", parts[0])
+	}
+	if parts[1] == "" {
+		return PersonName{}, fmt.Errorf("parse %q: empty value for segment 1", s)
 	}
 	out.PersonID = parts[1]
 	return out, nil
 }
 
-func ParseFullPersonName(s string) (ParsedPersonName, error) {
+func ParseFullPersonName(s string) (PersonName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
-		return ParsedPersonName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
+		return PersonName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
 	}
 	return ParsePersonName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-func (n ParsedPersonName) Name() string {
+func (n PersonName) Name() string {
 	return "persons/" + n.PersonID
 }
 
-func (n ParsedPersonName) FullName() string {
+func (n PersonName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
-func (x *Person) ParsePersonName() (ParsedPersonName, error) {
+func (x *Person) ParsePersonName() (PersonName, error) {
 	return ParsePersonName(x.PersonName)
+}
+
+func (x *Person) ParseFullPersonName() (PersonName, error) {
+	return ParseFullPersonName(x.PersonName)
 }

@@ -16,7 +16,19 @@ message Thing {
   string name = 1;
 }
 
-// ProjectThing exercises a multi-segment, single-pattern resource.
+// Project is the parent of ProjectThing. Declaring it separately lets the
+// generator bind ProjectThing.Parent() to ProjectName.
+message Project {
+  option (google.api.resource) = {
+    type: "example.com/Project"
+    pattern: "projects/{project}"
+  };
+
+  string name = 1;
+}
+
+// ProjectThing exercises a multi-segment, single-pattern resource. Its parent
+// pattern matches Project above, so Parent() returns ProjectName.
 message ProjectThing {
   option (google.api.resource) = {
     type: "example.com/ProjectThing"

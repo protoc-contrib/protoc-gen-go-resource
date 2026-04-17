@@ -6,9 +6,29 @@ option go_package = "github.com/protoc-contrib/protoc-gen-go-resource/internal/g
 
 import "google/api/resource.proto";
 
+// Publisher and Author are Book's possible parents — one per pattern.
+message Publisher {
+  option (google.api.resource) = {
+    type: "example.com/Publisher"
+    pattern: "publishers/{publisher}"
+  };
+
+  string name = 1;
+}
+
+message Author {
+  option (google.api.resource) = {
+    type: "example.com/Author"
+    pattern: "authors/{author}"
+  };
+
+  string name = 1;
+}
+
 // Book exercises a resource with more than one pattern. The generator emits a
 // sealed interface and one struct per pattern; ParseBookName tries each in
-// order.
+// order. Each variant's Parent() returns the matching parent resource
+// (PublisherName or AuthorName).
 message Book {
   option (google.api.resource) = {
     type: "example.com/Book"

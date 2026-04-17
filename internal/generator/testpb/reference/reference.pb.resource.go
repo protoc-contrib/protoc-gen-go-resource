@@ -10,90 +10,104 @@ import (
 	strings "strings"
 )
 
-type ParsedFooName struct {
+type FooName struct {
 	FooID string
 }
 
-func ParseFooName(s string) (ParsedFooName, error) {
+func ParseFooName(s string) (FooName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 2 {
-		return ParsedFooName{}, fmt.Errorf("parse %q: bad number of segments, want: 2, got: %d", s, len(parts))
+		return FooName{}, fmt.Errorf("parse %q: bad number of segments, want: 2, got: %d", s, len(parts))
 	}
-	var out ParsedFooName
+	var out FooName
 	if parts[0] != "foos" {
-		return ParsedFooName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "foos", parts[0])
+		return FooName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "foos", parts[0])
+	}
+	if parts[1] == "" {
+		return FooName{}, fmt.Errorf("parse %q: empty value for segment 1", s)
 	}
 	out.FooID = parts[1]
 	return out, nil
 }
 
-func ParseFullFooName(s string) (ParsedFooName, error) {
+func ParseFullFooName(s string) (FooName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
-		return ParsedFooName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
+		return FooName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
 	}
 	return ParseFooName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-func (n ParsedFooName) Name() string {
+func (n FooName) Name() string {
 	return "foos/" + n.FooID
 }
 
-func (n ParsedFooName) FullName() string {
+func (n FooName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
-type ParsedBarName struct {
+type BarName struct {
 	BarID string
 }
 
-func ParseBarName(s string) (ParsedBarName, error) {
+func ParseBarName(s string) (BarName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 2 {
-		return ParsedBarName{}, fmt.Errorf("parse %q: bad number of segments, want: 2, got: %d", s, len(parts))
+		return BarName{}, fmt.Errorf("parse %q: bad number of segments, want: 2, got: %d", s, len(parts))
 	}
-	var out ParsedBarName
+	var out BarName
 	if parts[0] != "bars" {
-		return ParsedBarName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "bars", parts[0])
+		return BarName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "bars", parts[0])
+	}
+	if parts[1] == "" {
+		return BarName{}, fmt.Errorf("parse %q: empty value for segment 1", s)
 	}
 	out.BarID = parts[1]
 	return out, nil
 }
 
-func ParseFullBarName(s string) (ParsedBarName, error) {
+func ParseFullBarName(s string) (BarName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
-		return ParsedBarName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
+		return BarName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
 	}
 	return ParseBarName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-func (n ParsedBarName) Name() string {
+func (n BarName) Name() string {
 	return "bars/" + n.BarID
 }
 
-func (n ParsedBarName) FullName() string {
+func (n BarName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
-func (x *Foo) ParseName() (ParsedFooName, error) {
+func (x *Foo) ParseName() (FooName, error) {
 	return ParseFooName(x.Name)
 }
 
-func (x *Foo) ParseBar() (ParsedBarName, error) {
+func (x *Foo) ParseFullName() (FooName, error) {
+	return ParseFullFooName(x.Name)
+}
+
+func (x *Foo) ParseBar() (BarName, error) {
 	return ParseBarName(x.Bar)
 }
 
-func (x *Bar) ParseName() (ParsedBarName, error) {
+func (x *Bar) ParseName() (BarName, error) {
 	return ParseBarName(x.Name)
 }
 
-func (x *Bar) ParseFoo() (ParsedFooName, error) {
+func (x *Bar) ParseFullName() (BarName, error) {
+	return ParseFullBarName(x.Name)
+}
+
+func (x *Bar) ParseFoo() (FooName, error) {
 	return ParseFooName(x.Foo)
 }
 
-func (x *CrossPackage) ParseThingName() (simple.ParsedThingName, error) {
+func (x *CrossPackage) ParseThingName() (simple.ThingName, error) {
 	return simple.ParseThingName(x.ThingName)
 }
 
-func (x *CrossPackageExternal) ParseExternalName() (external.ParsedExternalName, error) {
+func (x *CrossPackageExternal) ParseExternalName() (external.ExternalName, error) {
 	return external.ParseExternalName(x.ExternalName)
 }

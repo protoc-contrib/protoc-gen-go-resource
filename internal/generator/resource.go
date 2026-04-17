@@ -15,6 +15,7 @@ import (
 // parsed name-field (if the definition came from a message), and the set of
 // patterns that identify instances of the resource.
 type resource struct {
+	Message       *protogen.Message // nil for file-level resource_definition
 	NameField     *protogen.Field
 	ParseFunc     protogen.GoIdent
 	FullParseFunc protogen.GoIdent
@@ -36,6 +37,7 @@ func newMessageResource(m *protogen.Message) (*resource, error) {
 	if err != nil {
 		return nil, err
 	}
+	r.Message = m
 
 	fieldName := "name"
 	if d.NameField != "" {
@@ -76,11 +78,14 @@ func newBareResource(importPath protogen.GoImportPath, d *annotations.ResourceDe
 		return nil, err
 	}
 
+	if len(d.Pattern) == 0 {
+		return nil, fmt.Errorf("resource %q: no patterns declared", d.Type)
+	}
 	patterns := make([]pattern, 0, len(d.Pattern))
 	for _, s := range d.Pattern {
 		p, err := newPattern(s)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("resource %q: %w", d.Type, err)
 		}
 		patterns = append(patterns, p)
 	}
@@ -88,7 +93,7 @@ func newBareResource(importPath protogen.GoImportPath, d *annotations.ResourceDe
 	return &resource{
 		ParseFunc:     protogen.GoIdent{GoName: "Parse" + t.TypeName + "Name", GoImportPath: importPath},
 		FullParseFunc: protogen.GoIdent{GoName: "ParseFull" + t.TypeName + "Name", GoImportPath: importPath},
-		ParsedType:    protogen.GoIdent{GoName: "Parsed" + t.TypeName + "Name", GoImportPath: importPath},
+		ParsedType:    protogen.GoIdent{GoName: t.TypeName + "Name", GoImportPath: importPath},
 		Type:          t,
 		Patterns:      patterns,
 	}, nil

@@ -15,16 +15,25 @@ type pattern []segment
 // segment is written as "{name}"; every other segment is a literal that must
 // match exactly at parse time.
 func newPattern(s string) (pattern, error) {
+	if s == "" {
+		return nil, fmt.Errorf("empty pattern")
+	}
 	var out pattern
+	seen := map[string]bool{}
 	for _, part := range strings.Split(s, "/") {
 		if strings.HasPrefix(part, "{") {
 			if !strings.HasSuffix(part, "}") {
 				return nil, fmt.Errorf("invalid segment: %q", part)
 			}
-			out = append(out, segment{
-				Name: strings.TrimSuffix(strings.TrimPrefix(part, "{"), "}"),
-				Var:  true,
-			})
+			name := part[1 : len(part)-1]
+			if name == "" {
+				return nil, fmt.Errorf("empty variable name in pattern %q", s)
+			}
+			if seen[name] {
+				return nil, fmt.Errorf("duplicate variable %q in pattern %q", name, s)
+			}
+			seen[name] = true
+			out = append(out, segment{Name: name, Var: true})
 			continue
 		}
 		out = append(out, segment{Name: part})

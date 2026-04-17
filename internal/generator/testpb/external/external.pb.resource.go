@@ -8,34 +8,37 @@ import (
 	strings "strings"
 )
 
-type ParsedExternalName struct {
+type ExternalName struct {
 	ExternalID string
 }
 
-func ParseExternalName(s string) (ParsedExternalName, error) {
+func ParseExternalName(s string) (ExternalName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 2 {
-		return ParsedExternalName{}, fmt.Errorf("parse %q: bad number of segments, want: 2, got: %d", s, len(parts))
+		return ExternalName{}, fmt.Errorf("parse %q: bad number of segments, want: 2, got: %d", s, len(parts))
 	}
-	var out ParsedExternalName
+	var out ExternalName
 	if parts[0] != "external" {
-		return ParsedExternalName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "external", parts[0])
+		return ExternalName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "external", parts[0])
+	}
+	if parts[1] == "" {
+		return ExternalName{}, fmt.Errorf("parse %q: empty value for segment 1", s)
 	}
 	out.ExternalID = parts[1]
 	return out, nil
 }
 
-func ParseFullExternalName(s string) (ParsedExternalName, error) {
+func ParseFullExternalName(s string) (ExternalName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
-		return ParsedExternalName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
+		return ExternalName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
 	}
 	return ParseExternalName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-func (n ParsedExternalName) Name() string {
+func (n ExternalName) Name() string {
 	return "external/" + n.ExternalID
 }
 
-func (n ParsedExternalName) FullName() string {
+func (n ExternalName) FullName() string {
 	return "//example.com/" + n.Name()
 }

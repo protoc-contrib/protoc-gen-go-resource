@@ -4,116 +4,221 @@
 package multipattern
 
 import (
+	errors "errors"
 	fmt "fmt"
 	strings "strings"
 )
 
-type ParsedBookName_0 struct {
+type PublisherName struct {
+	PublisherID string
+}
+
+func ParsePublisherName(s string) (PublisherName, error) {
+	parts := strings.Split(s, "/")
+	if len(parts) != 2 {
+		return PublisherName{}, fmt.Errorf("parse %q: bad number of segments, want: 2, got: %d", s, len(parts))
+	}
+	var out PublisherName
+	if parts[0] != "publishers" {
+		return PublisherName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "publishers", parts[0])
+	}
+	if parts[1] == "" {
+		return PublisherName{}, fmt.Errorf("parse %q: empty value for segment 1", s)
+	}
+	out.PublisherID = parts[1]
+	return out, nil
+}
+
+func ParseFullPublisherName(s string) (PublisherName, error) {
+	if !strings.HasPrefix(s, "//example.com/") {
+		return PublisherName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
+	}
+	return ParsePublisherName(strings.TrimPrefix(s, "//example.com/"))
+}
+
+func (n PublisherName) Name() string {
+	return "publishers/" + n.PublisherID
+}
+
+func (n PublisherName) FullName() string {
+	return "//example.com/" + n.Name()
+}
+
+type AuthorName struct {
+	AuthorID string
+}
+
+func ParseAuthorName(s string) (AuthorName, error) {
+	parts := strings.Split(s, "/")
+	if len(parts) != 2 {
+		return AuthorName{}, fmt.Errorf("parse %q: bad number of segments, want: 2, got: %d", s, len(parts))
+	}
+	var out AuthorName
+	if parts[0] != "authors" {
+		return AuthorName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "authors", parts[0])
+	}
+	if parts[1] == "" {
+		return AuthorName{}, fmt.Errorf("parse %q: empty value for segment 1", s)
+	}
+	out.AuthorID = parts[1]
+	return out, nil
+}
+
+func ParseFullAuthorName(s string) (AuthorName, error) {
+	if !strings.HasPrefix(s, "//example.com/") {
+		return AuthorName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
+	}
+	return ParseAuthorName(strings.TrimPrefix(s, "//example.com/"))
+}
+
+func (n AuthorName) Name() string {
+	return "authors/" + n.AuthorID
+}
+
+func (n AuthorName) FullName() string {
+	return "//example.com/" + n.Name()
+}
+
+type PublisherBookName struct {
 	PublisherID string
 	BookID      string
 }
 
-func ParseBookName_0(s string) (ParsedBookName_0, error) {
+func ParsePublisherBookName(s string) (PublisherBookName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 4 {
-		return ParsedBookName_0{}, fmt.Errorf("parse %q: bad number of segments, want: 4, got: %d", s, len(parts))
+		return PublisherBookName{}, fmt.Errorf("parse %q: bad number of segments, want: 4, got: %d", s, len(parts))
 	}
-	var out ParsedBookName_0
+	var out PublisherBookName
 	if parts[0] != "publishers" {
-		return ParsedBookName_0{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "publishers", parts[0])
+		return PublisherBookName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "publishers", parts[0])
+	}
+	if parts[1] == "" {
+		return PublisherBookName{}, fmt.Errorf("parse %q: empty value for segment 1", s)
 	}
 	out.PublisherID = parts[1]
 	if parts[2] != "books" {
-		return ParsedBookName_0{}, fmt.Errorf("parse %q: bad segment 2, want: %q, got: %q", s, "books", parts[2])
+		return PublisherBookName{}, fmt.Errorf("parse %q: bad segment 2, want: %q, got: %q", s, "books", parts[2])
+	}
+	if parts[3] == "" {
+		return PublisherBookName{}, fmt.Errorf("parse %q: empty value for segment 3", s)
 	}
 	out.BookID = parts[3]
 	return out, nil
 }
 
-func ParseBookNameFull_0(s string) (ParsedBookName_0, error) {
-	if !strings.HasPrefix(s, "//example.com/") {
-		return ParsedBookName_0{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
-	}
-	return ParseBookName_0(strings.TrimPrefix(s, "//example.com/"))
-}
-
-func (n ParsedBookName_0) Name() string {
+func (n PublisherBookName) Name() string {
 	return "publishers/" + n.PublisherID + "/books/" + n.BookID
 }
 
-func (n ParsedBookName_0) FullName() string {
+func (n PublisherBookName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
-func (n ParsedBookName_0) mustEmbedParsedBookName() {}
+func (n PublisherBookName) Parent() PublisherName {
+	return PublisherName{
+		PublisherID: n.PublisherID,
+	}
+}
 
-type ParsedBookName_1 struct {
+func (n PublisherBookName) mustEmbedBookName() {}
+
+type AuthorBookName struct {
 	AuthorID string
 	BookID   string
 }
 
-func ParseBookName_1(s string) (ParsedBookName_1, error) {
+func ParseAuthorBookName(s string) (AuthorBookName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 4 {
-		return ParsedBookName_1{}, fmt.Errorf("parse %q: bad number of segments, want: 4, got: %d", s, len(parts))
+		return AuthorBookName{}, fmt.Errorf("parse %q: bad number of segments, want: 4, got: %d", s, len(parts))
 	}
-	var out ParsedBookName_1
+	var out AuthorBookName
 	if parts[0] != "authors" {
-		return ParsedBookName_1{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "authors", parts[0])
+		return AuthorBookName{}, fmt.Errorf("parse %q: bad segment 0, want: %q, got: %q", s, "authors", parts[0])
+	}
+	if parts[1] == "" {
+		return AuthorBookName{}, fmt.Errorf("parse %q: empty value for segment 1", s)
 	}
 	out.AuthorID = parts[1]
 	if parts[2] != "books" {
-		return ParsedBookName_1{}, fmt.Errorf("parse %q: bad segment 2, want: %q, got: %q", s, "books", parts[2])
+		return AuthorBookName{}, fmt.Errorf("parse %q: bad segment 2, want: %q, got: %q", s, "books", parts[2])
+	}
+	if parts[3] == "" {
+		return AuthorBookName{}, fmt.Errorf("parse %q: empty value for segment 3", s)
 	}
 	out.BookID = parts[3]
 	return out, nil
 }
 
-func ParseBookNameFull_1(s string) (ParsedBookName_1, error) {
-	if !strings.HasPrefix(s, "//example.com/") {
-		return ParsedBookName_1{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
-	}
-	return ParseBookName_1(strings.TrimPrefix(s, "//example.com/"))
-}
-
-func (n ParsedBookName_1) Name() string {
+func (n AuthorBookName) Name() string {
 	return "authors/" + n.AuthorID + "/books/" + n.BookID
 }
 
-func (n ParsedBookName_1) FullName() string {
+func (n AuthorBookName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
-func (n ParsedBookName_1) mustEmbedParsedBookName() {}
+func (n AuthorBookName) Parent() AuthorName {
+	return AuthorName{
+		AuthorID: n.AuthorID,
+	}
+}
 
-type ParsedBookName interface {
+func (n AuthorBookName) mustEmbedBookName() {}
+
+type BookName interface {
 	Name() string
 	FullName() string
-	mustEmbedParsedBookName()
+	mustEmbedBookName()
 }
 
-func ParseBookName(s string) (ParsedBookName, error) {
-	var errs []string
-	if res, err := ParseBookName_0(s); err == nil {
-		return res, nil
-	} else {
-		errs = append(errs, fmt.Sprintf("pattern 0: %v", err))
+func ParseBookName(s string) (BookName, error) {
+	var errs []error
+	{
+		res, err := ParsePublisherBookName(s)
+		if err == nil {
+			return res, nil
+		}
+		errs = append(errs, err)
 	}
-	if res, err := ParseBookName_1(s); err == nil {
-		return res, nil
-	} else {
-		errs = append(errs, fmt.Sprintf("pattern 1: %v", err))
+	{
+		res, err := ParseAuthorBookName(s)
+		if err == nil {
+			return res, nil
+		}
+		errs = append(errs, err)
 	}
-	return nil, fmt.Errorf("no pattern matches input: %v", strings.Join(errs, "; "))
+	return nil, fmt.Errorf("parse %q: no pattern matches: %w", s, errors.Join(errs...))
 }
 
-func ParseFullBookName(s string) (ParsedBookName, error) {
+func ParseFullBookName(s string) (BookName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
 		return nil, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
 	}
 	return ParseBookName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-func (x *Book) ParseName() (ParsedBookName, error) {
+func (x *Publisher) ParseName() (PublisherName, error) {
+	return ParsePublisherName(x.Name)
+}
+
+func (x *Publisher) ParseFullName() (PublisherName, error) {
+	return ParseFullPublisherName(x.Name)
+}
+
+func (x *Author) ParseName() (AuthorName, error) {
+	return ParseAuthorName(x.Name)
+}
+
+func (x *Author) ParseFullName() (AuthorName, error) {
+	return ParseFullAuthorName(x.Name)
+}
+
+func (x *Book) ParseName() (BookName, error) {
 	return ParseBookName(x.Name)
+}
+
+func (x *Book) ParseFullName() (BookName, error) {
+	return ParseFullBookName(x.Name)
 }

@@ -67,7 +67,54 @@ func (x *Thing) GetName() string {
 	return ""
 }
 
-// ProjectThing exercises a multi-segment, single-pattern resource.
+// Project is the parent of ProjectThing. Declaring it separately lets the
+// generator bind ProjectThing.Parent() to ProjectName.
+type Project struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Project) Reset() {
+	*x = Project{}
+	mi := &file_simple_simple_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Project) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Project) ProtoMessage() {}
+
+func (x *Project) ProtoReflect() protoreflect.Message {
+	mi := &file_simple_simple_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Project.ProtoReflect.Descriptor instead.
+func (*Project) Descriptor() ([]byte, []int) {
+	return file_simple_simple_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Project) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+// ProjectThing exercises a multi-segment, single-pattern resource. Its parent
+// pattern matches Project above, so Parent() returns ProjectName.
 type ProjectThing struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -77,7 +124,7 @@ type ProjectThing struct {
 
 func (x *ProjectThing) Reset() {
 	*x = ProjectThing{}
-	mi := &file_simple_simple_proto_msgTypes[1]
+	mi := &file_simple_simple_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -89,7 +136,7 @@ func (x *ProjectThing) String() string {
 func (*ProjectThing) ProtoMessage() {}
 
 func (x *ProjectThing) ProtoReflect() protoreflect.Message {
-	mi := &file_simple_simple_proto_msgTypes[1]
+	mi := &file_simple_simple_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -102,7 +149,7 @@ func (x *ProjectThing) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProjectThing.ProtoReflect.Descriptor instead.
 func (*ProjectThing) Descriptor() ([]byte, []int) {
-	return file_simple_simple_proto_rawDescGZIP(), []int{1}
+	return file_simple_simple_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *ProjectThing) GetName() string {
@@ -119,7 +166,10 @@ const file_simple_simple_proto_rawDesc = "" +
 	"\x13simple/simple.proto\x12\ftests.simple\x1a\x19google/api/resource.proto\"C\n" +
 	"\x05Thing\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name:&\xeaA#\n" +
-	"\x11example.com/Thing\x12\x0ethings/{thing}\"d\n" +
+	"\x11example.com/Thing\x12\x0ethings/{thing}\"K\n" +
+	"\aProject\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name:,\xeaA)\n" +
+	"\x13example.com/Project\x12\x12projects/{project}\"d\n" +
 	"\fProjectThing\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name:@\xeaA=\n" +
 	"\x18example.com/ProjectThing\x12!projects/{project}/things/{thing}BSZQgithub.com/protoc-contrib/protoc-gen-go-resource/internal/generator/testpb/simpleb\x06proto3"
@@ -136,10 +186,11 @@ func file_simple_simple_proto_rawDescGZIP() []byte {
 	return file_simple_simple_proto_rawDescData
 }
 
-var file_simple_simple_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_simple_simple_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_simple_simple_proto_goTypes = []any{
 	(*Thing)(nil),        // 0: tests.simple.Thing
-	(*ProjectThing)(nil), // 1: tests.simple.ProjectThing
+	(*Project)(nil),      // 1: tests.simple.Project
+	(*ProjectThing)(nil), // 2: tests.simple.ProjectThing
 }
 var file_simple_simple_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -160,7 +211,7 @@ func file_simple_simple_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_simple_simple_proto_rawDesc), len(file_simple_simple_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
