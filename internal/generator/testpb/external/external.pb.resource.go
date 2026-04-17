@@ -38,17 +38,27 @@ func ParseFullExternalName(s string) (ExternalName, error) {
 	return ParseExternalName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-// Name returns the relative resource name "external/{external}".
-func (n ExternalName) Name() string {
+// String returns the relative resource name "external/{external}" and implements fmt.Stringer.
+func (n ExternalName) String() string {
 	return "external/" + n.ExternalID
 }
 
 // FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n ExternalName) FullName() string {
-	return "//example.com/" + n.Name()
+	return "//example.com/" + n.String()
 }
 
-// String implements fmt.Stringer and is equivalent to Name.
-func (n ExternalName) String() string {
-	return n.Name()
+// MarshalText implements encoding.TextMarshaler and emits the relative resource name.
+func (n ExternalName) MarshalText() ([]byte, error) {
+	return []byte(n.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler by parsing b as a relative ExternalName.
+func (n *ExternalName) UnmarshalText(b []byte) error {
+	parsed, err := ParseExternalName(string(b))
+	if err != nil {
+		return err
+	}
+	*n = parsed
+	return nil
 }

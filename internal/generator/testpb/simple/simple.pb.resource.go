@@ -38,19 +38,29 @@ func ParseFullThingName(s string) (ThingName, error) {
 	return ParseThingName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-// Name returns the relative resource name "things/{thing}".
-func (n ThingName) Name() string {
+// String returns the relative resource name "things/{thing}" and implements fmt.Stringer.
+func (n ThingName) String() string {
 	return "things/" + n.ThingID
 }
 
 // FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n ThingName) FullName() string {
-	return "//example.com/" + n.Name()
+	return "//example.com/" + n.String()
 }
 
-// String implements fmt.Stringer and is equivalent to Name.
-func (n ThingName) String() string {
-	return n.Name()
+// MarshalText implements encoding.TextMarshaler and emits the relative resource name.
+func (n ThingName) MarshalText() ([]byte, error) {
+	return []byte(n.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler by parsing b as a relative ThingName.
+func (n *ThingName) UnmarshalText(b []byte) error {
+	parsed, err := ParseThingName(string(b))
+	if err != nil {
+		return err
+	}
+	*n = parsed
+	return nil
 }
 
 // ProjectName is the parsed form of a "example.com/Project" resource name (pattern "projects/{project}").
@@ -83,19 +93,29 @@ func ParseFullProjectName(s string) (ProjectName, error) {
 	return ParseProjectName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-// Name returns the relative resource name "projects/{project}".
-func (n ProjectName) Name() string {
+// String returns the relative resource name "projects/{project}" and implements fmt.Stringer.
+func (n ProjectName) String() string {
 	return "projects/" + n.ProjectID
 }
 
 // FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n ProjectName) FullName() string {
-	return "//example.com/" + n.Name()
+	return "//example.com/" + n.String()
 }
 
-// String implements fmt.Stringer and is equivalent to Name.
-func (n ProjectName) String() string {
-	return n.Name()
+// MarshalText implements encoding.TextMarshaler and emits the relative resource name.
+func (n ProjectName) MarshalText() ([]byte, error) {
+	return []byte(n.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler by parsing b as a relative ProjectName.
+func (n *ProjectName) UnmarshalText(b []byte) error {
+	parsed, err := ParseProjectName(string(b))
+	if err != nil {
+		return err
+	}
+	*n = parsed
+	return nil
 }
 
 // ProjectThingName is the parsed form of a "example.com/ProjectThing" resource name (pattern "projects/{project}/things/{thing}").
@@ -136,19 +156,29 @@ func ParseFullProjectThingName(s string) (ProjectThingName, error) {
 	return ParseProjectThingName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-// Name returns the relative resource name "projects/{project}/things/{thing}".
-func (n ProjectThingName) Name() string {
+// String returns the relative resource name "projects/{project}/things/{thing}" and implements fmt.Stringer.
+func (n ProjectThingName) String() string {
 	return "projects/" + n.ProjectID + "/things/" + n.ThingID
 }
 
 // FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n ProjectThingName) FullName() string {
-	return "//example.com/" + n.Name()
+	return "//example.com/" + n.String()
 }
 
-// String implements fmt.Stringer and is equivalent to Name.
-func (n ProjectThingName) String() string {
-	return n.Name()
+// MarshalText implements encoding.TextMarshaler and emits the relative resource name.
+func (n ProjectThingName) MarshalText() ([]byte, error) {
+	return []byte(n.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler by parsing b as a relative ProjectThingName.
+func (n *ProjectThingName) UnmarshalText(b []byte) error {
+	parsed, err := ParseProjectThingName(string(b))
+	if err != nil {
+		return err
+	}
+	*n = parsed
+	return nil
 }
 
 // Parent returns the parent ProjectName derived from this resource's fields.

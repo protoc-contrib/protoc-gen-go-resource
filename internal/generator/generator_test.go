@@ -84,9 +84,12 @@ var _ = Describe("generator.Generate", func() {
 		Expect(out).To(ContainSubstring("ThingID string"))
 		Expect(out).To(ContainSubstring("func ParseThingName(s string) (ThingName, error)"))
 		Expect(out).To(ContainSubstring("func ParseFullThingName(s string) (ThingName, error)"))
-		Expect(out).To(ContainSubstring("func (n ThingName) Name() string"))
-		Expect(out).To(ContainSubstring("func (n ThingName) FullName() string"))
 		Expect(out).To(ContainSubstring("func (n ThingName) String() string"))
+		Expect(out).To(ContainSubstring("func (n ThingName) FullName() string"))
+		Expect(out).To(ContainSubstring("func (n ThingName) MarshalText() ([]byte, error)"))
+		Expect(out).To(ContainSubstring("func (n *ThingName) UnmarshalText(b []byte) error"))
+		// Name() was dropped in favor of String().
+		Expect(out).NotTo(ContainSubstring("func (n ThingName) Name() string"))
 		Expect(out).To(ContainSubstring("func (x *Thing) ParseName() (ThingName, error)"))
 		// The "Parsed" prefix must not leak into generated identifiers.
 		Expect(out).NotTo(ContainSubstring("ParsedThingName"))

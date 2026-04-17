@@ -61,22 +61,19 @@ func TestSimple_ParseFull(t *testing.T) {
 
 func TestSimple_Name(t *testing.T) {
 	n := simple.ThingName{ThingID: "foo"}
-	if got, want := n.Name(), "things/foo"; got != want {
-		t.Errorf("Name: got %q, want %q", got, want)
-	}
-	if got, want := n.FullName(), "//example.com/things/foo"; got != want {
-		t.Errorf("FullName: got %q, want %q", got, want)
-	}
-	// String() satisfies fmt.Stringer and matches Name() — so %v and %s
-	// print the relative name, which is what formatters typically want.
+	// String() is the canonical relative-name accessor and satisfies
+	// fmt.Stringer — %v/%s print the relative name.
 	var s fmt.Stringer = n
 	if got, want := s.String(), "things/foo"; got != want {
 		t.Errorf("String: got %q, want %q", got, want)
 	}
+	if got, want := n.FullName(), "//example.com/things/foo"; got != want {
+		t.Errorf("FullName: got %q, want %q", got, want)
+	}
 }
 
 // TestSimple_Multipart covers a multi-segment single-pattern resource
-// (projects/{project}/things/{thing}). Name() round-trips through Parse().
+// (projects/{project}/things/{thing}). String() round-trips through Parse().
 func TestSimple_Multipart(t *testing.T) {
 	in := "projects/p/things/t"
 	got, err := simple.ParseProjectThingName(in)
@@ -87,7 +84,7 @@ func TestSimple_Multipart(t *testing.T) {
 	if got != want {
 		t.Fatalf("got %+v, want %+v", got, want)
 	}
-	if roundTrip := got.Name(); roundTrip != in {
+	if roundTrip := got.String(); roundTrip != in {
 		t.Fatalf("roundtrip: got %q, want %q", roundTrip, in)
 	}
 }
@@ -102,8 +99,8 @@ func TestSimple_Parent(t *testing.T) {
 	if parent != want {
 		t.Fatalf("Parent: got %+v, want %+v", parent, want)
 	}
-	if got, wantName := parent.Name(), "projects/p"; got != wantName {
-		t.Errorf("parent.Name: got %q, want %q", got, wantName)
+	if got, wantName := parent.String(), "projects/p"; got != wantName {
+		t.Errorf("parent.String: got %q, want %q", got, wantName)
 	}
 }
 
@@ -203,8 +200,8 @@ func TestMultiPattern_FullPrefix(t *testing.T) {
 
 func TestMultiPattern_Name(t *testing.T) {
 	var n multipattern.BookName = multipattern.AuthorBookName{AuthorID: "a", BookID: "b"}
-	if got, want := n.Name(), "authors/a/books/b"; got != want {
-		t.Fatalf("Name: got %q, want %q", got, want)
+	if got, want := n.String(), "authors/a/books/b"; got != want {
+		t.Fatalf("String: got %q, want %q", got, want)
 	}
 	if got, want := n.FullName(), "//example.com/authors/a/books/b"; got != want {
 		t.Fatalf("FullName: got %q, want %q", got, want)

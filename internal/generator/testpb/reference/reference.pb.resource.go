@@ -40,19 +40,29 @@ func ParseFullFooName(s string) (FooName, error) {
 	return ParseFooName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-// Name returns the relative resource name "foos/{foo}".
-func (n FooName) Name() string {
+// String returns the relative resource name "foos/{foo}" and implements fmt.Stringer.
+func (n FooName) String() string {
 	return "foos/" + n.FooID
 }
 
 // FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n FooName) FullName() string {
-	return "//example.com/" + n.Name()
+	return "//example.com/" + n.String()
 }
 
-// String implements fmt.Stringer and is equivalent to Name.
-func (n FooName) String() string {
-	return n.Name()
+// MarshalText implements encoding.TextMarshaler and emits the relative resource name.
+func (n FooName) MarshalText() ([]byte, error) {
+	return []byte(n.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler by parsing b as a relative FooName.
+func (n *FooName) UnmarshalText(b []byte) error {
+	parsed, err := ParseFooName(string(b))
+	if err != nil {
+		return err
+	}
+	*n = parsed
+	return nil
 }
 
 // BarName is the parsed form of a "example.com/Bar" resource name (pattern "bars/{bar}").
@@ -85,19 +95,29 @@ func ParseFullBarName(s string) (BarName, error) {
 	return ParseBarName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-// Name returns the relative resource name "bars/{bar}".
-func (n BarName) Name() string {
+// String returns the relative resource name "bars/{bar}" and implements fmt.Stringer.
+func (n BarName) String() string {
 	return "bars/" + n.BarID
 }
 
 // FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n BarName) FullName() string {
-	return "//example.com/" + n.Name()
+	return "//example.com/" + n.String()
 }
 
-// String implements fmt.Stringer and is equivalent to Name.
-func (n BarName) String() string {
-	return n.Name()
+// MarshalText implements encoding.TextMarshaler and emits the relative resource name.
+func (n BarName) MarshalText() ([]byte, error) {
+	return []byte(n.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler by parsing b as a relative BarName.
+func (n *BarName) UnmarshalText(b []byte) error {
+	parsed, err := ParseBarName(string(b))
+	if err != nil {
+		return err
+	}
+	*n = parsed
+	return nil
 }
 
 // ParseName parses x.Name as FooName.

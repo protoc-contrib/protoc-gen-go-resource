@@ -315,21 +315,32 @@ func emitPatternStruct(g *protogen.GeneratedFile, r *resource, typeName, funcNam
 		g.P()
 	}
 
-	g.P("// Name returns the relative resource name ", strconv.Quote(patStr), ".")
-	g.P("func (n ", typeName, ") Name() string {")
+	g.P("// String returns the relative resource name ", strconv.Quote(patStr), " and implements fmt.Stringer.")
+	g.P("func (n ", typeName, ") String() string {")
 	g.P("return ", nameExpression(p))
 	g.P("}")
 	g.P()
 
 	g.P("// FullName returns the fully-qualified resource name prefixed with ", strconv.Quote(prefix), ".")
 	g.P("func (n ", typeName, ") FullName() string {")
-	g.P("return ", strconv.Quote(prefix), " + n.Name()")
+	g.P("return ", strconv.Quote(prefix), " + n.String()")
 	g.P("}")
 	g.P()
 
-	g.P("// String implements fmt.Stringer and is equivalent to Name.")
-	g.P("func (n ", typeName, ") String() string {")
-	g.P("return n.Name()")
+	g.P("// MarshalText implements encoding.TextMarshaler and emits the relative resource name.")
+	g.P("func (n ", typeName, ") MarshalText() ([]byte, error) {")
+	g.P("return []byte(n.String()), nil")
+	g.P("}")
+	g.P()
+
+	g.P("// UnmarshalText implements encoding.TextUnmarshaler by parsing b as a relative ", typeName, ".")
+	g.P("func (n *", typeName, ") UnmarshalText(b []byte) error {")
+	g.P("parsed, err := ", funcName, "(string(b))")
+	g.P("if err != nil {")
+	g.P("return err")
+	g.P("}")
+	g.P("*n = parsed")
+	g.P("return nil")
 	g.P("}")
 	g.P()
 
@@ -371,7 +382,7 @@ func parentPattern(p pattern) (pattern, bool) {
 	return p[:len(p)-2], true
 }
 
-// nameExpression builds the string-concatenation expression used in Name().
+// nameExpression builds the string-concatenation expression used in String().
 // For "projects/{project}/books/{book}" it yields: "projects/" + n.ProjectID + "/books/" + n.BookID
 func nameExpression(p pattern) string {
 	var parts []string
@@ -411,9 +422,9 @@ func emitMultiPatternInterface(g *protogen.GeneratedFile, r *resource, embed str
 
 	g.P("// ", r.ParsedType.GoName, " is the parsed form of a ", strconv.Quote(fullType), " resource name. It is a sealed interface with one implementation per declared pattern.")
 	g.P("type ", r.ParsedType.GoName, " interface {")
-	g.P("Name() string")
-	g.P("FullName() string")
 	g.P("String() string")
+	g.P("FullName() string")
+	g.P("MarshalText() ([]byte, error)")
 	g.P(embed, "()")
 	g.P("}")
 	g.P()

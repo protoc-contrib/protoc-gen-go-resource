@@ -39,19 +39,29 @@ func ParseFullPublisherName(s string) (PublisherName, error) {
 	return ParsePublisherName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-// Name returns the relative resource name "publishers/{publisher}".
-func (n PublisherName) Name() string {
+// String returns the relative resource name "publishers/{publisher}" and implements fmt.Stringer.
+func (n PublisherName) String() string {
 	return "publishers/" + n.PublisherID
 }
 
 // FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n PublisherName) FullName() string {
-	return "//example.com/" + n.Name()
+	return "//example.com/" + n.String()
 }
 
-// String implements fmt.Stringer and is equivalent to Name.
-func (n PublisherName) String() string {
-	return n.Name()
+// MarshalText implements encoding.TextMarshaler and emits the relative resource name.
+func (n PublisherName) MarshalText() ([]byte, error) {
+	return []byte(n.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler by parsing b as a relative PublisherName.
+func (n *PublisherName) UnmarshalText(b []byte) error {
+	parsed, err := ParsePublisherName(string(b))
+	if err != nil {
+		return err
+	}
+	*n = parsed
+	return nil
 }
 
 // AuthorName is the parsed form of a "example.com/Author" resource name (pattern "authors/{author}").
@@ -84,19 +94,29 @@ func ParseFullAuthorName(s string) (AuthorName, error) {
 	return ParseAuthorName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-// Name returns the relative resource name "authors/{author}".
-func (n AuthorName) Name() string {
+// String returns the relative resource name "authors/{author}" and implements fmt.Stringer.
+func (n AuthorName) String() string {
 	return "authors/" + n.AuthorID
 }
 
 // FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n AuthorName) FullName() string {
-	return "//example.com/" + n.Name()
+	return "//example.com/" + n.String()
 }
 
-// String implements fmt.Stringer and is equivalent to Name.
-func (n AuthorName) String() string {
-	return n.Name()
+// MarshalText implements encoding.TextMarshaler and emits the relative resource name.
+func (n AuthorName) MarshalText() ([]byte, error) {
+	return []byte(n.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler by parsing b as a relative AuthorName.
+func (n *AuthorName) UnmarshalText(b []byte) error {
+	parsed, err := ParseAuthorName(string(b))
+	if err != nil {
+		return err
+	}
+	*n = parsed
+	return nil
 }
 
 // PublisherBookName is the "publishers/{publisher}/books/{book}" variant of BookName.
@@ -129,19 +149,29 @@ func ParsePublisherBookName(s string) (PublisherBookName, error) {
 	return out, nil
 }
 
-// Name returns the relative resource name "publishers/{publisher}/books/{book}".
-func (n PublisherBookName) Name() string {
+// String returns the relative resource name "publishers/{publisher}/books/{book}" and implements fmt.Stringer.
+func (n PublisherBookName) String() string {
 	return "publishers/" + n.PublisherID + "/books/" + n.BookID
 }
 
 // FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n PublisherBookName) FullName() string {
-	return "//example.com/" + n.Name()
+	return "//example.com/" + n.String()
 }
 
-// String implements fmt.Stringer and is equivalent to Name.
-func (n PublisherBookName) String() string {
-	return n.Name()
+// MarshalText implements encoding.TextMarshaler and emits the relative resource name.
+func (n PublisherBookName) MarshalText() ([]byte, error) {
+	return []byte(n.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler by parsing b as a relative PublisherBookName.
+func (n *PublisherBookName) UnmarshalText(b []byte) error {
+	parsed, err := ParsePublisherBookName(string(b))
+	if err != nil {
+		return err
+	}
+	*n = parsed
+	return nil
 }
 
 // Parent returns the parent PublisherName derived from this resource's fields.
@@ -183,19 +213,29 @@ func ParseAuthorBookName(s string) (AuthorBookName, error) {
 	return out, nil
 }
 
-// Name returns the relative resource name "authors/{author}/books/{book}".
-func (n AuthorBookName) Name() string {
+// String returns the relative resource name "authors/{author}/books/{book}" and implements fmt.Stringer.
+func (n AuthorBookName) String() string {
 	return "authors/" + n.AuthorID + "/books/" + n.BookID
 }
 
 // FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n AuthorBookName) FullName() string {
-	return "//example.com/" + n.Name()
+	return "//example.com/" + n.String()
 }
 
-// String implements fmt.Stringer and is equivalent to Name.
-func (n AuthorBookName) String() string {
-	return n.Name()
+// MarshalText implements encoding.TextMarshaler and emits the relative resource name.
+func (n AuthorBookName) MarshalText() ([]byte, error) {
+	return []byte(n.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler by parsing b as a relative AuthorBookName.
+func (n *AuthorBookName) UnmarshalText(b []byte) error {
+	parsed, err := ParseAuthorBookName(string(b))
+	if err != nil {
+		return err
+	}
+	*n = parsed
+	return nil
 }
 
 // Parent returns the parent AuthorName derived from this resource's fields.
@@ -209,9 +249,9 @@ func (n AuthorBookName) mustEmbedBookName() {}
 
 // BookName is the parsed form of a "example.com/Book" resource name. It is a sealed interface with one implementation per declared pattern.
 type BookName interface {
-	Name() string
-	FullName() string
 	String() string
+	FullName() string
+	MarshalText() ([]byte, error)
 	mustEmbedBookName()
 }
 

@@ -38,19 +38,29 @@ func ParseFullPersonName(s string) (PersonName, error) {
 	return ParsePersonName(strings.TrimPrefix(s, "//example.com/"))
 }
 
-// Name returns the relative resource name "persons/{person}".
-func (n PersonName) Name() string {
+// String returns the relative resource name "persons/{person}" and implements fmt.Stringer.
+func (n PersonName) String() string {
 	return "persons/" + n.PersonID
 }
 
 // FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n PersonName) FullName() string {
-	return "//example.com/" + n.Name()
+	return "//example.com/" + n.String()
 }
 
-// String implements fmt.Stringer and is equivalent to Name.
-func (n PersonName) String() string {
-	return n.Name()
+// MarshalText implements encoding.TextMarshaler and emits the relative resource name.
+func (n PersonName) MarshalText() ([]byte, error) {
+	return []byte(n.String()), nil
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler by parsing b as a relative PersonName.
+func (n *PersonName) UnmarshalText(b []byte) error {
+	parsed, err := ParsePersonName(string(b))
+	if err != nil {
+		return err
+	}
+	*n = parsed
+	return nil
 }
 
 // ParsePersonName parses x.PersonName as PersonName.
