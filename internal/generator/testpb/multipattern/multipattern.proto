@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package tests.multipattern;
+
+option go_package = "github.com/protoc-contrib/protoc-gen-go-resource/internal/generator/testpb/multipattern";
+
+import "google/api/resource.proto";
+
+// Book exercises a resource with more than one pattern. The generator emits a
+// sealed interface and one struct per pattern; ParseBookName tries each in
+// order.
+message Book {
+  option (google.api.resource) = {
+    type: "example.com/Book"
+    pattern: "publishers/{publisher}/books/{book}"
+    pattern: "authors/{author}/books/{book}"
+  };
+
+  string name = 1;
+}

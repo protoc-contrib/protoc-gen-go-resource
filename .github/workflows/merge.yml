@@ -1,0 +1,23 @@
+name: Auto Merge Dependabot
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    if: ${{ github.actor == 'dependabot[bot]' }}
+    runs-on: ubuntu-latest
+    steps:
+      # `gh pr merge --auto` enables GitHub's native auto-merge, which waits
+      # for every required status check on the target branch before merging.
+      # Branch protection with required checks must be configured on `main`
+      # for this gate to actually delay the merge.
+      - name: Enable GitHub auto-merge
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge --auto --rebase "$PR_URL"

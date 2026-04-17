@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package tests.external;
+
+option go_package = "github.com/protoc-contrib/protoc-gen-go-resource/internal/generator/testpb/external";
+
+import "google/api/resource.proto";
+
+// File-level resource_definition: the generator emits parse helpers even
+// though no message carries the google.api.resource annotation.
+option (google.api.resource_definition) = {
+  type: "example.com/External"
+  pattern: "external/{external}"
+};

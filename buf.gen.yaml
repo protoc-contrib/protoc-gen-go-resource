@@ -1,0 +1,11 @@
+version: v2
+
+plugins:
+  - local: [go, tool, protoc-gen-go]
+    out: .
+    opt:
+      - module=github.com/protoc-contrib/protoc-gen-go-resource
+  - local: [go, run, ./cmd/protoc-gen-go-resource]
+    out: .
+    opt:
+      - module=github.com/protoc-contrib/protoc-gen-go-resource

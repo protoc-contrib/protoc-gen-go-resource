@@ -1,1 +1,6 @@
+.idea
+.clang-format
+.bin
+/result
+coverage.out
 /protoc-gen-go-resource

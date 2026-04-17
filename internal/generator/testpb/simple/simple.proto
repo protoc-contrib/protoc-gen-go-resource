@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package tests.simple;
+
+option go_package = "github.com/protoc-contrib/protoc-gen-go-resource/internal/generator/testpb/simple";
+
+import "google/api/resource.proto";
+
+// Thing exercises a single-segment resource pattern.
+message Thing {
+  option (google.api.resource) = {
+    type: "example.com/Thing"
+    pattern: "things/{thing}"
+  };
+
+  string name = 1;
+}
+
+// ProjectThing exercises a multi-segment, single-pattern resource.
+message ProjectThing {
+  option (google.api.resource) = {
+    type: "example.com/ProjectThing"
+    pattern: "projects/{project}/things/{thing}"
+  };
+
+  string name = 1;
+}

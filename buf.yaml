@@ -1,0 +1,27 @@
+version: v2
+
+# The plugin itself does not ship any .proto files — the sole proto module is
+# the fixture tree under internal/generator/testpb used to exercise the
+# generator.
+modules:
+  - path: internal/generator/testpb
+    name: buf.build/protoc-contrib/protoc-gen-go-resource-testpb
+
+deps:
+  - buf.build/googleapis/googleapis
+
+lint:
+  use:
+    - BASIC
+  except:
+    # Fixture packages intentionally use the plain "tests.*" style rather
+    # than a versioned package suffix.
+    - PACKAGE_VERSION_SUFFIX
+    - PACKAGE_DIRECTORY_MATCH
+    # reference.proto imports simple/external so the Go generator can see
+    # their resource types at codegen time, even though the imports aren't
+    # referenced in the proto syntax.
+    - IMPORT_USED
+breaking:
+  use:
+    - FILE
