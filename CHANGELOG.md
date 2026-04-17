@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/protoc-contrib/protoc-gen-go-resource/compare/v1.0.0...v1.1.0) (2026-04-17)
+
+
+### Features
+
+* add doc comments to generated resource name code ([5e34e2e](https://github.com/protoc-contrib/protoc-gen-go-resource/commit/5e34e2e3352f3faa920e76248b3157552f3ce9b4))
+
 ## 1.0.0 (2026-04-17)
 
 
