@@ -8,10 +8,12 @@ import (
 	strings "strings"
 )
 
+// PersonName is the parsed form of a "example.com/Person" resource name (pattern "persons/{person}").
 type PersonName struct {
 	PersonID string
 }
 
+// ParsePersonName parses s as PersonName (pattern "persons/{person}").
 func ParsePersonName(s string) (PersonName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 2 {
@@ -28,6 +30,7 @@ func ParsePersonName(s string) (PersonName, error) {
 	return out, nil
 }
 
+// ParseFullPersonName parses s as the fully-qualified form of PersonName (prefix "//example.com/").
 func ParseFullPersonName(s string) (PersonName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
 		return PersonName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
@@ -35,22 +38,27 @@ func ParseFullPersonName(s string) (PersonName, error) {
 	return ParsePersonName(strings.TrimPrefix(s, "//example.com/"))
 }
 
+// Name returns the relative resource name "persons/{person}".
 func (n PersonName) Name() string {
 	return "persons/" + n.PersonID
 }
 
+// FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n PersonName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+// String implements fmt.Stringer and is equivalent to Name.
 func (n PersonName) String() string {
 	return n.Name()
 }
 
+// ParsePersonName parses x.PersonName as PersonName.
 func (x *Person) ParsePersonName() (PersonName, error) {
 	return ParsePersonName(x.PersonName)
 }
 
+// ParseFullPersonName parses x.PersonName as PersonName.
 func (x *Person) ParseFullPersonName() (PersonName, error) {
 	return ParseFullPersonName(x.PersonName)
 }

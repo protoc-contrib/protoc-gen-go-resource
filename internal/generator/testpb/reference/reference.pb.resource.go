@@ -10,10 +10,12 @@ import (
 	strings "strings"
 )
 
+// FooName is the parsed form of a "example.com/Foo" resource name (pattern "foos/{foo}").
 type FooName struct {
 	FooID string
 }
 
+// ParseFooName parses s as FooName (pattern "foos/{foo}").
 func ParseFooName(s string) (FooName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 2 {
@@ -30,6 +32,7 @@ func ParseFooName(s string) (FooName, error) {
 	return out, nil
 }
 
+// ParseFullFooName parses s as the fully-qualified form of FooName (prefix "//example.com/").
 func ParseFullFooName(s string) (FooName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
 		return FooName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
@@ -37,22 +40,27 @@ func ParseFullFooName(s string) (FooName, error) {
 	return ParseFooName(strings.TrimPrefix(s, "//example.com/"))
 }
 
+// Name returns the relative resource name "foos/{foo}".
 func (n FooName) Name() string {
 	return "foos/" + n.FooID
 }
 
+// FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n FooName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+// String implements fmt.Stringer and is equivalent to Name.
 func (n FooName) String() string {
 	return n.Name()
 }
 
+// BarName is the parsed form of a "example.com/Bar" resource name (pattern "bars/{bar}").
 type BarName struct {
 	BarID string
 }
 
+// ParseBarName parses s as BarName (pattern "bars/{bar}").
 func ParseBarName(s string) (BarName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 2 {
@@ -69,6 +77,7 @@ func ParseBarName(s string) (BarName, error) {
 	return out, nil
 }
 
+// ParseFullBarName parses s as the fully-qualified form of BarName (prefix "//example.com/").
 func ParseFullBarName(s string) (BarName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
 		return BarName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
@@ -76,46 +85,57 @@ func ParseFullBarName(s string) (BarName, error) {
 	return ParseBarName(strings.TrimPrefix(s, "//example.com/"))
 }
 
+// Name returns the relative resource name "bars/{bar}".
 func (n BarName) Name() string {
 	return "bars/" + n.BarID
 }
 
+// FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n BarName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+// String implements fmt.Stringer and is equivalent to Name.
 func (n BarName) String() string {
 	return n.Name()
 }
 
+// ParseName parses x.Name as FooName.
 func (x *Foo) ParseName() (FooName, error) {
 	return ParseFooName(x.Name)
 }
 
+// ParseFullName parses x.Name as FooName.
 func (x *Foo) ParseFullName() (FooName, error) {
 	return ParseFullFooName(x.Name)
 }
 
+// ParseBar parses x.Bar as BarName.
 func (x *Foo) ParseBar() (BarName, error) {
 	return ParseBarName(x.Bar)
 }
 
+// ParseName parses x.Name as BarName.
 func (x *Bar) ParseName() (BarName, error) {
 	return ParseBarName(x.Name)
 }
 
+// ParseFullName parses x.Name as BarName.
 func (x *Bar) ParseFullName() (BarName, error) {
 	return ParseFullBarName(x.Name)
 }
 
+// ParseFoo parses x.Foo as FooName.
 func (x *Bar) ParseFoo() (FooName, error) {
 	return ParseFooName(x.Foo)
 }
 
+// ParseThingName parses x.ThingName as ThingName.
 func (x *CrossPackage) ParseThingName() (simple.ThingName, error) {
 	return simple.ParseThingName(x.ThingName)
 }
 
+// ParseExternalName parses x.ExternalName as ExternalName.
 func (x *CrossPackageExternal) ParseExternalName() (external.ExternalName, error) {
 	return external.ParseExternalName(x.ExternalName)
 }

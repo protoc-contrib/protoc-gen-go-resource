@@ -8,10 +8,12 @@ import (
 	strings "strings"
 )
 
+// ExternalName is the parsed form of a "example.com/External" resource name (pattern "external/{external}").
 type ExternalName struct {
 	ExternalID string
 }
 
+// ParseExternalName parses s as ExternalName (pattern "external/{external}").
 func ParseExternalName(s string) (ExternalName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 2 {
@@ -28,6 +30,7 @@ func ParseExternalName(s string) (ExternalName, error) {
 	return out, nil
 }
 
+// ParseFullExternalName parses s as the fully-qualified form of ExternalName (prefix "//example.com/").
 func ParseFullExternalName(s string) (ExternalName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
 		return ExternalName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
@@ -35,14 +38,17 @@ func ParseFullExternalName(s string) (ExternalName, error) {
 	return ParseExternalName(strings.TrimPrefix(s, "//example.com/"))
 }
 
+// Name returns the relative resource name "external/{external}".
 func (n ExternalName) Name() string {
 	return "external/" + n.ExternalID
 }
 
+// FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n ExternalName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+// String implements fmt.Stringer and is equivalent to Name.
 func (n ExternalName) String() string {
 	return n.Name()
 }

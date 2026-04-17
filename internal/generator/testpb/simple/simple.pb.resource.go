@@ -8,10 +8,12 @@ import (
 	strings "strings"
 )
 
+// ThingName is the parsed form of a "example.com/Thing" resource name (pattern "things/{thing}").
 type ThingName struct {
 	ThingID string
 }
 
+// ParseThingName parses s as ThingName (pattern "things/{thing}").
 func ParseThingName(s string) (ThingName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 2 {
@@ -28,6 +30,7 @@ func ParseThingName(s string) (ThingName, error) {
 	return out, nil
 }
 
+// ParseFullThingName parses s as the fully-qualified form of ThingName (prefix "//example.com/").
 func ParseFullThingName(s string) (ThingName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
 		return ThingName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
@@ -35,22 +38,27 @@ func ParseFullThingName(s string) (ThingName, error) {
 	return ParseThingName(strings.TrimPrefix(s, "//example.com/"))
 }
 
+// Name returns the relative resource name "things/{thing}".
 func (n ThingName) Name() string {
 	return "things/" + n.ThingID
 }
 
+// FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n ThingName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+// String implements fmt.Stringer and is equivalent to Name.
 func (n ThingName) String() string {
 	return n.Name()
 }
 
+// ProjectName is the parsed form of a "example.com/Project" resource name (pattern "projects/{project}").
 type ProjectName struct {
 	ProjectID string
 }
 
+// ParseProjectName parses s as ProjectName (pattern "projects/{project}").
 func ParseProjectName(s string) (ProjectName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 2 {
@@ -67,6 +75,7 @@ func ParseProjectName(s string) (ProjectName, error) {
 	return out, nil
 }
 
+// ParseFullProjectName parses s as the fully-qualified form of ProjectName (prefix "//example.com/").
 func ParseFullProjectName(s string) (ProjectName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
 		return ProjectName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
@@ -74,23 +83,28 @@ func ParseFullProjectName(s string) (ProjectName, error) {
 	return ParseProjectName(strings.TrimPrefix(s, "//example.com/"))
 }
 
+// Name returns the relative resource name "projects/{project}".
 func (n ProjectName) Name() string {
 	return "projects/" + n.ProjectID
 }
 
+// FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n ProjectName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+// String implements fmt.Stringer and is equivalent to Name.
 func (n ProjectName) String() string {
 	return n.Name()
 }
 
+// ProjectThingName is the parsed form of a "example.com/ProjectThing" resource name (pattern "projects/{project}/things/{thing}").
 type ProjectThingName struct {
 	ProjectID string
 	ThingID   string
 }
 
+// ParseProjectThingName parses s as ProjectThingName (pattern "projects/{project}/things/{thing}").
 func ParseProjectThingName(s string) (ProjectThingName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 4 {
@@ -114,6 +128,7 @@ func ParseProjectThingName(s string) (ProjectThingName, error) {
 	return out, nil
 }
 
+// ParseFullProjectThingName parses s as the fully-qualified form of ProjectThingName (prefix "//example.com/").
 func ParseFullProjectThingName(s string) (ProjectThingName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
 		return ProjectThingName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
@@ -121,44 +136,54 @@ func ParseFullProjectThingName(s string) (ProjectThingName, error) {
 	return ParseProjectThingName(strings.TrimPrefix(s, "//example.com/"))
 }
 
+// Name returns the relative resource name "projects/{project}/things/{thing}".
 func (n ProjectThingName) Name() string {
 	return "projects/" + n.ProjectID + "/things/" + n.ThingID
 }
 
+// FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n ProjectThingName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+// String implements fmt.Stringer and is equivalent to Name.
 func (n ProjectThingName) String() string {
 	return n.Name()
 }
 
+// Parent returns the parent ProjectName derived from this resource's fields.
 func (n ProjectThingName) Parent() ProjectName {
 	return ProjectName{
 		ProjectID: n.ProjectID,
 	}
 }
 
+// ParseName parses x.Name as ThingName.
 func (x *Thing) ParseName() (ThingName, error) {
 	return ParseThingName(x.Name)
 }
 
+// ParseFullName parses x.Name as ThingName.
 func (x *Thing) ParseFullName() (ThingName, error) {
 	return ParseFullThingName(x.Name)
 }
 
+// ParseName parses x.Name as ProjectName.
 func (x *Project) ParseName() (ProjectName, error) {
 	return ParseProjectName(x.Name)
 }
 
+// ParseFullName parses x.Name as ProjectName.
 func (x *Project) ParseFullName() (ProjectName, error) {
 	return ParseFullProjectName(x.Name)
 }
 
+// ParseName parses x.Name as ProjectThingName.
 func (x *ProjectThing) ParseName() (ProjectThingName, error) {
 	return ParseProjectThingName(x.Name)
 }
 
+// ParseFullName parses x.Name as ProjectThingName.
 func (x *ProjectThing) ParseFullName() (ProjectThingName, error) {
 	return ParseFullProjectThingName(x.Name)
 }

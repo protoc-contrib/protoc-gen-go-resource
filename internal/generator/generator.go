@@ -6,6 +6,7 @@ package generator
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
@@ -263,7 +264,14 @@ func lookupParent(p pattern, reg *registry) *parentBinding {
 // multi-pattern interface.
 func emitPatternStruct(g *protogen.GeneratedFile, r *resource, typeName, funcName, fullFuncName, embedFunc string, parent *parentBinding, p pattern) {
 	prefix := r.servicePrefix()
+	patStr := patternString(p)
+	fullType := r.Type.ServiceName + "/" + r.Type.TypeName
 
+	if embedFunc != "" {
+		g.P("// ", typeName, " is the ", strconv.Quote(patStr), " variant of ", r.ParsedType.GoName, ".")
+	} else {
+		g.P("// ", typeName, " is the parsed form of a ", strconv.Quote(fullType), " resource name (pattern ", strconv.Quote(patStr), ").")
+	}
 	g.P("type ", typeName, " struct {")
 	for _, s := range p {
 		if s.Var {
@@ -273,6 +281,7 @@ func emitPatternStruct(g *protogen.GeneratedFile, r *resource, typeName, funcNam
 	g.P("}")
 	g.P()
 
+	g.P("// ", funcName, " parses s as ", typeName, " (pattern ", strconv.Quote(patStr), ").")
 	g.P("func ", funcName, "(s string) (", typeName, ", error) {")
 	g.P("parts := ", stringsPackage.Ident("Split"), "(s, \"/\")")
 	g.P("if len(parts) != ", len(p), " {")
@@ -296,6 +305,7 @@ func emitPatternStruct(g *protogen.GeneratedFile, r *resource, typeName, funcNam
 	g.P()
 
 	if fullFuncName != "" {
+		g.P("// ", fullFuncName, " parses s as the fully-qualified form of ", typeName, " (prefix ", strconv.Quote(prefix), ").")
 		g.P("func ", fullFuncName, "(s string) (", typeName, ", error) {")
 		g.P("if !", stringsPackage.Ident("HasPrefix"), "(s, ", strconv.Quote(prefix), ") {")
 		g.P("return ", typeName, "{}, ", fmtPackage.Ident("Errorf"), "(\"parse %q: invalid prefix, want: %q\", s, ", strconv.Quote(prefix), ")")
@@ -305,16 +315,19 @@ func emitPatternStruct(g *protogen.GeneratedFile, r *resource, typeName, funcNam
 		g.P()
 	}
 
+	g.P("// Name returns the relative resource name ", strconv.Quote(patStr), ".")
 	g.P("func (n ", typeName, ") Name() string {")
 	g.P("return ", nameExpression(p))
 	g.P("}")
 	g.P()
 
+	g.P("// FullName returns the fully-qualified resource name prefixed with ", strconv.Quote(prefix), ".")
 	g.P("func (n ", typeName, ") FullName() string {")
 	g.P("return ", strconv.Quote(prefix), " + n.Name()")
 	g.P("}")
 	g.P()
 
+	g.P("// String implements fmt.Stringer and is equivalent to Name.")
 	g.P("func (n ", typeName, ") String() string {")
 	g.P("return n.Name()")
 	g.P("}")
@@ -334,6 +347,7 @@ func emitPatternStruct(g *protogen.GeneratedFile, r *resource, typeName, funcNam
 // generated type. Fields on the parent pattern are mapped by variable name
 // from the receiver — patternsEqual already guaranteed those names match.
 func emitParent(g *protogen.GeneratedFile, typeName string, parent *parentBinding) {
+	g.P("// Parent returns the parent ", parent.ReturnType.GoName, " derived from this resource's fields.")
 	g.P("func (n ", typeName, ") Parent() ", parent.ReturnType, " {")
 	g.P("return ", parent.Variant, "{")
 	for _, s := range parent.Pattern {
@@ -393,7 +407,9 @@ func nameExpression(p pattern) string {
 
 func emitMultiPatternInterface(g *protogen.GeneratedFile, r *resource, embed string, implNames []string) {
 	prefix := r.servicePrefix()
+	fullType := r.Type.ServiceName + "/" + r.Type.TypeName
 
+	g.P("// ", r.ParsedType.GoName, " is the parsed form of a ", strconv.Quote(fullType), " resource name. It is a sealed interface with one implementation per declared pattern.")
 	g.P("type ", r.ParsedType.GoName, " interface {")
 	g.P("Name() string")
 	g.P("FullName() string")
@@ -402,6 +418,7 @@ func emitMultiPatternInterface(g *protogen.GeneratedFile, r *resource, embed str
 	g.P("}")
 	g.P()
 
+	g.P("// ", r.ParseFunc.GoName, " parses s as ", r.ParsedType.GoName, ", trying each pattern in declaration order and returning the first match.")
 	g.P("func ", r.ParseFunc.GoName, "(s string) (", r.ParsedType.GoName, ", error) {")
 	g.P("var errs []error")
 	for _, name := range implNames {
@@ -417,6 +434,7 @@ func emitMultiPatternInterface(g *protogen.GeneratedFile, r *resource, embed str
 	g.P("}")
 	g.P()
 
+	g.P("// ", r.FullParseFunc.GoName, " parses the fully-qualified form of ", r.ParsedType.GoName, " (prefix ", strconv.Quote(prefix), ") and delegates to ", r.ParseFunc.GoName, ".")
 	g.P("func ", r.FullParseFunc.GoName, "(s string) (", r.ParsedType.GoName, ", error) {")
 	g.P("if !", stringsPackage.Ident("HasPrefix"), "(s, ", strconv.Quote(prefix), ") {")
 	g.P("return nil, ", fmtPackage.Ident("Errorf"), "(\"parse %q: invalid prefix, want: %q\", s, ", strconv.Quote(prefix), ")")
@@ -538,8 +556,28 @@ func fieldReference(field *protogen.Field, reg *registry, opts *Options) (refere
 }
 
 func emitReference(g *protogen.GeneratedFile, ref reference) {
+	g.P("// ", ref.MethodName, " parses x.", ref.FieldName, " as ", ref.ParsedType.GoName, ".")
 	g.P("func (x *", ref.Owner.GoIdent, ") ", ref.MethodName, "() (", ref.ParsedType, ", error) {")
 	g.P("return ", ref.ParseFunc, "(x.", ref.FieldName, ")")
 	g.P("}")
 	g.P()
+}
+
+// patternString renders a parsed pattern back to its canonical form —
+// "foo/{bar}/baz/{qux}" — for use in generated doc comments.
+func patternString(p pattern) string {
+	var sb strings.Builder
+	for i, s := range p {
+		if i > 0 {
+			sb.WriteByte('/')
+		}
+		if s.Var {
+			sb.WriteByte('{')
+			sb.WriteString(s.Name)
+			sb.WriteByte('}')
+		} else {
+			sb.WriteString(s.Name)
+		}
+	}
+	return sb.String()
 }

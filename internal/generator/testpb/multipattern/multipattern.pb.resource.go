@@ -9,10 +9,12 @@ import (
 	strings "strings"
 )
 
+// PublisherName is the parsed form of a "example.com/Publisher" resource name (pattern "publishers/{publisher}").
 type PublisherName struct {
 	PublisherID string
 }
 
+// ParsePublisherName parses s as PublisherName (pattern "publishers/{publisher}").
 func ParsePublisherName(s string) (PublisherName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 2 {
@@ -29,6 +31,7 @@ func ParsePublisherName(s string) (PublisherName, error) {
 	return out, nil
 }
 
+// ParseFullPublisherName parses s as the fully-qualified form of PublisherName (prefix "//example.com/").
 func ParseFullPublisherName(s string) (PublisherName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
 		return PublisherName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
@@ -36,22 +39,27 @@ func ParseFullPublisherName(s string) (PublisherName, error) {
 	return ParsePublisherName(strings.TrimPrefix(s, "//example.com/"))
 }
 
+// Name returns the relative resource name "publishers/{publisher}".
 func (n PublisherName) Name() string {
 	return "publishers/" + n.PublisherID
 }
 
+// FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n PublisherName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+// String implements fmt.Stringer and is equivalent to Name.
 func (n PublisherName) String() string {
 	return n.Name()
 }
 
+// AuthorName is the parsed form of a "example.com/Author" resource name (pattern "authors/{author}").
 type AuthorName struct {
 	AuthorID string
 }
 
+// ParseAuthorName parses s as AuthorName (pattern "authors/{author}").
 func ParseAuthorName(s string) (AuthorName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 2 {
@@ -68,6 +76,7 @@ func ParseAuthorName(s string) (AuthorName, error) {
 	return out, nil
 }
 
+// ParseFullAuthorName parses s as the fully-qualified form of AuthorName (prefix "//example.com/").
 func ParseFullAuthorName(s string) (AuthorName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
 		return AuthorName{}, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
@@ -75,23 +84,28 @@ func ParseFullAuthorName(s string) (AuthorName, error) {
 	return ParseAuthorName(strings.TrimPrefix(s, "//example.com/"))
 }
 
+// Name returns the relative resource name "authors/{author}".
 func (n AuthorName) Name() string {
 	return "authors/" + n.AuthorID
 }
 
+// FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n AuthorName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+// String implements fmt.Stringer and is equivalent to Name.
 func (n AuthorName) String() string {
 	return n.Name()
 }
 
+// PublisherBookName is the "publishers/{publisher}/books/{book}" variant of BookName.
 type PublisherBookName struct {
 	PublisherID string
 	BookID      string
 }
 
+// ParsePublisherBookName parses s as PublisherBookName (pattern "publishers/{publisher}/books/{book}").
 func ParsePublisherBookName(s string) (PublisherBookName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 4 {
@@ -115,18 +129,22 @@ func ParsePublisherBookName(s string) (PublisherBookName, error) {
 	return out, nil
 }
 
+// Name returns the relative resource name "publishers/{publisher}/books/{book}".
 func (n PublisherBookName) Name() string {
 	return "publishers/" + n.PublisherID + "/books/" + n.BookID
 }
 
+// FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n PublisherBookName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+// String implements fmt.Stringer and is equivalent to Name.
 func (n PublisherBookName) String() string {
 	return n.Name()
 }
 
+// Parent returns the parent PublisherName derived from this resource's fields.
 func (n PublisherBookName) Parent() PublisherName {
 	return PublisherName{
 		PublisherID: n.PublisherID,
@@ -135,11 +153,13 @@ func (n PublisherBookName) Parent() PublisherName {
 
 func (n PublisherBookName) mustEmbedBookName() {}
 
+// AuthorBookName is the "authors/{author}/books/{book}" variant of BookName.
 type AuthorBookName struct {
 	AuthorID string
 	BookID   string
 }
 
+// ParseAuthorBookName parses s as AuthorBookName (pattern "authors/{author}/books/{book}").
 func ParseAuthorBookName(s string) (AuthorBookName, error) {
 	parts := strings.Split(s, "/")
 	if len(parts) != 4 {
@@ -163,18 +183,22 @@ func ParseAuthorBookName(s string) (AuthorBookName, error) {
 	return out, nil
 }
 
+// Name returns the relative resource name "authors/{author}/books/{book}".
 func (n AuthorBookName) Name() string {
 	return "authors/" + n.AuthorID + "/books/" + n.BookID
 }
 
+// FullName returns the fully-qualified resource name prefixed with "//example.com/".
 func (n AuthorBookName) FullName() string {
 	return "//example.com/" + n.Name()
 }
 
+// String implements fmt.Stringer and is equivalent to Name.
 func (n AuthorBookName) String() string {
 	return n.Name()
 }
 
+// Parent returns the parent AuthorName derived from this resource's fields.
 func (n AuthorBookName) Parent() AuthorName {
 	return AuthorName{
 		AuthorID: n.AuthorID,
@@ -183,6 +207,7 @@ func (n AuthorBookName) Parent() AuthorName {
 
 func (n AuthorBookName) mustEmbedBookName() {}
 
+// BookName is the parsed form of a "example.com/Book" resource name. It is a sealed interface with one implementation per declared pattern.
 type BookName interface {
 	Name() string
 	FullName() string
@@ -190,6 +215,7 @@ type BookName interface {
 	mustEmbedBookName()
 }
 
+// ParseBookName parses s as BookName, trying each pattern in declaration order and returning the first match.
 func ParseBookName(s string) (BookName, error) {
 	var errs []error
 	{
@@ -209,6 +235,7 @@ func ParseBookName(s string) (BookName, error) {
 	return nil, fmt.Errorf("parse %q: no pattern matches: %w", s, errors.Join(errs...))
 }
 
+// ParseFullBookName parses the fully-qualified form of BookName (prefix "//example.com/") and delegates to ParseBookName.
 func ParseFullBookName(s string) (BookName, error) {
 	if !strings.HasPrefix(s, "//example.com/") {
 		return nil, fmt.Errorf("parse %q: invalid prefix, want: %q", s, "//example.com/")
@@ -216,26 +243,32 @@ func ParseFullBookName(s string) (BookName, error) {
 	return ParseBookName(strings.TrimPrefix(s, "//example.com/"))
 }
 
+// ParseName parses x.Name as PublisherName.
 func (x *Publisher) ParseName() (PublisherName, error) {
 	return ParsePublisherName(x.Name)
 }
 
+// ParseFullName parses x.Name as PublisherName.
 func (x *Publisher) ParseFullName() (PublisherName, error) {
 	return ParseFullPublisherName(x.Name)
 }
 
+// ParseName parses x.Name as AuthorName.
 func (x *Author) ParseName() (AuthorName, error) {
 	return ParseAuthorName(x.Name)
 }
 
+// ParseFullName parses x.Name as AuthorName.
 func (x *Author) ParseFullName() (AuthorName, error) {
 	return ParseFullAuthorName(x.Name)
 }
 
+// ParseName parses x.Name as BookName.
 func (x *Book) ParseName() (BookName, error) {
 	return ParseBookName(x.Name)
 }
 
+// ParseFullName parses x.Name as BookName.
 func (x *Book) ParseFullName() (BookName, error) {
 	return ParseFullBookName(x.Name)
 }
