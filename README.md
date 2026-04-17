@@ -10,12 +10,13 @@
 A [protoc](https://protobuf.dev) plugin that emits Go helpers for parsing
 and reconstructing Google API resource names. Given a message annotated
 with [`google.api.resource`](https://aip.dev/122), the plugin generates a
-strongly typed `Parsed<Type>Name` value, parse functions for both short
-(`things/{thing}`) and full (`//example.com/things/{thing}`) forms, and
-`Name()` / `FullName()` methods that round-trip back to strings. Fields
-annotated with `google.api.resource_reference` gain `Parse<Field>()`
-convenience methods on the owning message — including across proto
-packages.
+strongly typed `<Type>Name` value, parse functions for both short
+(`things/{thing}`) and full (`//example.com/things/{thing}`) forms,
+`Name()` / `FullName()` / `String()` methods that round-trip back to
+strings, and a `Parent()` method returning the parent resource's generated
+type. Fields annotated with `google.api.resource_reference` gain
+`Parse<Field>()` convenience methods on the owning message — including
+across proto packages.
 
 This project is a fork of
 [ucarion/protoc-gen-go-resource](https://github.com/ucarion/protoc-gen-go-resource).
@@ -27,12 +28,22 @@ The code generator has been rewritten on top of
 
 ## Features
 
-- **Single-pattern resources** — emits `type Parsed<Type>Name struct { ... }`
+- **Single-pattern resources** — emits `type <Type>Name struct { ... }`
   with one field per `{variable}` segment plus
-  `Parse<Type>Name` / `ParseFull<Type>Name` / `Name()` / `FullName()`.
-- **Multi-pattern resources** — emits a sealed `Parsed<Type>Name`
-  interface, one `Parsed<Type>Name_<N>` struct per pattern, and a
-  polymorphic `Parse<Type>Name` that tries each pattern in order.
+  `Parse<Type>Name` / `ParseFull<Type>Name` / `Name()` / `FullName()` /
+  `String()`.
+- **Multi-pattern resources** — emits a sealed `<Type>Name` interface,
+  one struct per pattern named after its parent
+  (e.g. `PublisherBookName`, `AuthorBookName`), and a polymorphic
+  `Parse<Type>Name` that tries each pattern in order. Variants fall back
+  to `<Type>Name_<N>` suffixes only when parents aren't declared or
+  collide.
+- **Parent navigation** — child resources get a `Parent()` method
+  returning the matched parent's generated type (e.g.
+  `ProjectThingName.Parent()` returns `ProjectName`). Each pattern of a
+  multi-pattern resource returns its own parent type.
+- **`fmt.Stringer`** — every generated name type implements `String()`,
+  returning the relative name, so it prints cleanly with `%v` / `%s`.
 - **Resource references** — every field annotated with
   `google.api.resource_reference` (including cross-package references)
   gains a `Parse<Field>()` method on the owning message that delegates to
@@ -47,6 +58,9 @@ The code generator has been rewritten on top of
 - **`ParseFullName()` on messages** — resource messages get both
   `ParseName()` (short form) and `ParseFullName()` (full
   `//service/...` form).
+- **Godoc comments** — every generated struct, interface, function, and
+  method carries a one-line doc comment surfacing the pattern and
+  resource type.
 
 ## Options
 
@@ -117,6 +131,14 @@ package example;
 
 import "google/api/resource.proto";
 
+message Publisher {
+  option (google.api.resource) = {
+    type: "example.com/Publisher"
+    pattern: "publishers/{publisher}"
+  };
+  string name = 1;
+}
+
 message Book {
   option (google.api.resource) = {
     type: "example.com/Book"
@@ -144,34 +166,39 @@ import (
     "strings"
 )
 
-type ParsedBookName struct {
+// BookName is the parsed form of a "example.com/Book" resource name
+// (pattern "publishers/{publisher}/books/{book}").
+type BookName struct {
     PublisherID string
     BookID      string
 }
 
-func ParseBookName(s string) (ParsedBookName, error) {
-    parts := strings.Split(s, "/")
-    if len(parts) != 4 {
-        return ParsedBookName{}, fmt.Errorf("parse %q: bad number of segments, want: 4, got: %d", s, len(parts))
-    }
-    // ... literal-segment checks elided ...
-    return ParsedBookName{PublisherID: parts[1], BookID: parts[3]}, nil
+// ParseBookName parses s as BookName (pattern "publishers/{publisher}/books/{book}").
+func ParseBookName(s string) (BookName, error) { /* ... */ }
+
+// ParseFullBookName parses the fully-qualified form ("//example.com/...").
+func ParseFullBookName(s string) (BookName, error) { /* ... */ }
+
+func (n BookName) Name() string     { return "publishers/" + n.PublisherID + "/books/" + n.BookID }
+func (n BookName) FullName() string { return "//example.com/" + n.Name() }
+func (n BookName) String() string   { return n.Name() }
+
+// Parent returns the parent PublisherName derived from this resource's fields.
+func (n BookName) Parent() PublisherName {
+    return PublisherName{PublisherID: n.PublisherID}
 }
 
-func ParseFullBookName(s string) (ParsedBookName, error) { /* strips "//example.com/" */ }
-
-func (n ParsedBookName) Name() string     { return "publishers/" + n.PublisherID + "/books/" + n.BookID }
-func (n ParsedBookName) FullName() string { return "//example.com/" + n.Name() }
-
-func (x *Book) ParseName() (ParsedBookName, error)            { /* delegates to ParseBookName */ }
-func (x *Book) ParseFullName() (ParsedBookName, error)        { /* delegates to ParseFullBookName */ }
-func (x *Book) ParseAuthor() (ParsedAuthorName, error)        { /* delegates to ParseAuthorName */ }
+func (x *Book) ParseName() (BookName, error)            { /* delegates to ParseBookName */ }
+func (x *Book) ParseFullName() (BookName, error)        { /* delegates to ParseFullBookName */ }
+func (x *Book) ParseAuthor() (AuthorName, error)        { /* delegates to ParseAuthorName */ }
 ```
 
 For multi-pattern resources (e.g. `Book` with both
 `publishers/{publisher}/books/{book}` and `authors/{author}/books/{book}`),
-the plugin additionally emits a sealed interface and a polymorphic parser
-that tries each pattern in declaration order.
+the plugin emits a sealed `BookName` interface, one struct per pattern
+named after its parent (`PublisherBookName`, `AuthorBookName`), and a
+polymorphic `ParseBookName` that tries each pattern in declaration order.
+Each variant's `Parent()` returns the matching parent type.
 
 ## CI Integration
 
