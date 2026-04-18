@@ -1,7 +1,7 @@
 {
   "repository": "protoc-contrib/protoc-gen-go-resource",
   "ref": "refs/heads/main",
-  "commit": "abba9f4c1466532a0d419912f487ed139017d015",
+  "commit": "b836184e73f6810b1f429a5ad66e1db2840eebed",
   "coverage": {
     "type": "statement",
     "format": "Go coverage",
@@ -2297,5 +2297,5 @@
     ]
   },
   "test_execution_time": 22000000000,
-  "timestamp": "2026-04-18T04:37:27.86893702Z"
+  "timestamp": "2026-04-18T04:45:10.864201016Z"
 }
