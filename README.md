@@ -55,6 +55,10 @@ The code generator has been rewritten on top of
   them to.
 - **Runtime validation** — generated parsers reject empty variable
   segments (e.g. `things/`) per AIP-122.
+- **UUID-typed segments** — declare `(google.api.field_info).format = UUID4`
+  on a mirror `<var>_id` field of the resource message to have the
+  generated struct field typed as `uuid.UUID` and validated at parse
+  time. See [UUID segments](#uuid-segments).
 - **`ParseFullName()` on messages** — resource messages get both
   `ParseName()` (short form) and `ParseFullName()` (full
   `//service/...` form).
@@ -199,6 +203,74 @@ the plugin emits a sealed `BookName` interface, one struct per pattern
 named after its parent (`PublisherBookName`, `AuthorBookName`), and a
 polymorphic `ParseBookName` that tries each pattern in declaration order.
 Each variant's `Parent()` returns the matching parent type.
+
+## UUID segments
+
+By default the plugin types every `{variable}` segment as `string`. When
+a segment's value is a UUID, you can declare that at the proto level and
+have the generated struct carry `uuid.UUID` directly — no call-site
+`uuid.Parse` boilerplate, and invalid UUIDs are rejected by
+`Parse<Type>Name` instead of surfacing later.
+
+Annotate a mirror `<var>_id` field on the resource message with
+[`google.api.field_info`](https://github.com/googleapis/googleapis/blob/master/google/api/field_info.proto):
+
+```proto
+import "google/api/field_info.proto";
+import "google/api/resource.proto";
+
+message Collection {
+  option (google.api.resource) = {
+    type: "example.com/Collection"
+    pattern: "collections/{collection}"
+  };
+
+  string name = 1;
+  string collection_id = 2 [(google.api.field_info).format = UUID4];
+}
+```
+
+The matching rule is: for each pattern variable `{x}`, if the resource
+message carries a field named `x_id` with
+`field_info.format = UUID4`, segment `{x}` is typed as `uuid.UUID`.
+Other fields are unaffected. With the annotation above the generator
+emits:
+
+```go
+type CollectionName struct {
+    CollectionID uuid.UUID
+}
+
+func ParseCollectionName(s string) (CollectionName, error) {
+    // ... segment check ...
+    v1, err := uuid.Parse(parts[1])
+    if err != nil {
+        return CollectionName{}, fmt.Errorf("parse %q: segment 1: %w", s, err)
+    }
+    out.CollectionID = v1
+    return out, nil
+}
+
+func (n CollectionName) String() string {
+    return "collections/" + n.CollectionID.String()
+}
+```
+
+`github.com/google/uuid` is imported automatically.
+
+**Parent/child consistency.** If a child resource declares `{x}` as
+UUID4, every parent resource that shares that variable name must declare
+it as UUID4 too (via the same annotation on its own mirror field).
+Otherwise `Parent()` cannot flow the typed field into the parent struct
+and the generator fails with an explicit error like
+`resource "example.com/Item": segment "organization" format (uuid4)
+disagrees with parent "example.com/Organization" (string); annotate
+organization_id consistently on both messages`.
+
+**Scope.** File-level `google.api.resource_definition` resources have
+no backing message and therefore no field to carry `field_info` —
+their segments stay `string`. Only `FORMAT_UUID4` is recognized today;
+other formats (`IPV4`, `IPV6`, …) fall back to `string`.
 
 ## CI Integration
 

@@ -18,6 +18,7 @@ import (
 	namefieldpb "github.com/protoc-contrib/protoc-gen-go-resource/internal/generator/testpb/namefield"
 	refpb "github.com/protoc-contrib/protoc-gen-go-resource/internal/generator/testpb/reference"
 	simplepb "github.com/protoc-contrib/protoc-gen-go-resource/internal/generator/testpb/simple"
+	uuidpb "github.com/protoc-contrib/protoc-gen-go-resource/internal/generator/testpb/uuid"
 )
 
 // runGenerator builds a CodeGeneratorRequest covering the given file
@@ -186,6 +187,7 @@ var _ = Describe("generator.Generate", func() {
 			{namefieldpb.File_namefield_namefield_proto, "namefield/namefield.pb.resource.go"},
 			{externalpb.File_external_external_proto, "external/external.pb.resource.go"},
 			{refpb.File_reference_reference_proto, "reference/reference.pb.resource.go"},
+			{uuidpb.File_uuid_uuid_proto, "uuid/uuid.pb.resource.go"},
 		}
 		for _, tc := range cases {
 			resp, err := runGenerator(nil, tc.fd)
@@ -253,5 +255,30 @@ var _ = Describe("generator.Generate validation", func() {
 		out := fileByName(resp, "simple/simple.pb.resource.go")
 		Expect(out).To(ContainSubstring("func (x *Thing) ParseFullName() (ThingName, error)"))
 		Expect(out).To(ContainSubstring("return ParseFullThingName(x.Name)"))
+	})
+})
+
+var _ = Describe("generator.Generate UUID segments", func() {
+	It("types a UUID4-annotated segment as uuid.UUID and validates at parse time", func() {
+		resp, err := runGenerator(nil, uuidpb.File_uuid_uuid_proto)
+		Expect(err).NotTo(HaveOccurred())
+		out := fileByName(resp, "uuid/uuid.pb.resource.go")
+		Expect(out).To(ContainSubstring(`uuid "github.com/google/uuid"`))
+		Expect(out).To(ContainSubstring("CollectionID uuid.UUID"))
+		Expect(out).To(ContainSubstring("uuid.Parse(parts[1])"))
+		Expect(out).To(ContainSubstring(`fmt.Errorf("parse %q: segment 1: %w", s, err)`))
+		// String() renders through uuid.UUID.String() so the struct field
+		// can stay typed.
+		Expect(out).To(ContainSubstring(`return "collections/" + n.CollectionID.String()`))
+	})
+
+	It("flows typed parent ids through Parent() when both resources declare the same UUID segment", func() {
+		resp, err := runGenerator(nil, uuidpb.File_uuid_uuid_proto)
+		Expect(err).NotTo(HaveOccurred())
+		out := fileByName(resp, "uuid/uuid.pb.resource.go")
+		Expect(out).To(ContainSubstring("func (n ItemName) Parent() OrganizationName {"))
+		Expect(out).To(ContainSubstring("OrganizationID: n.OrganizationID,"))
+		Expect(out).To(ContainSubstring("OrganizationID uuid.UUID"))
+		Expect(out).To(ContainSubstring("ItemID         uuid.UUID"))
 	})
 })

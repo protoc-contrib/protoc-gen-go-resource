@@ -21,6 +21,7 @@ const (
 	fmtPackage     = protogen.GoImportPath("fmt")
 	stringsPackage = protogen.GoImportPath("strings")
 	errorsPackage  = protogen.GoImportPath("errors")
+	uuidPackage    = protogen.GoImportPath("github.com/google/uuid")
 )
 
 // Generate walks every proto file in the plugin request, builds a registry of
@@ -93,12 +94,16 @@ func (r *registry) findByPattern(p pattern) (*resource, int, bool) {
 	return nil, 0, false
 }
 
+// patternsEqual compares two patterns by structure (segment names and whether
+// each is a variable). Segment Format is intentionally excluded: format is a
+// downstream projection that must not break parent-lookup topology — the
+// mismatch case is detected and reported by lookupParent instead.
 func patternsEqual(a, b pattern) bool {
 	if len(a) != len(b) {
 		return false
 	}
 	for i := range a {
-		if a[i] != b[i] {
+		if a[i].Name != b[i].Name || a[i].Var != b[i].Var {
 			return false
 		}
 	}
@@ -151,7 +156,9 @@ func generateFile(plugin *protogen.Plugin, f *protogen.File, reg *registry, opts
 	g.P()
 
 	for _, res := range resources {
-		emitResource(g, res, reg)
+		if err := emitResource(g, res, reg); err != nil {
+			return err
+		}
 	}
 	for _, ref := range refs {
 		emitReference(g, ref)
@@ -162,10 +169,14 @@ func generateFile(plugin *protogen.Plugin, f *protogen.File, reg *registry, opts
 // emitResource emits the parse/reconstruct helpers for a single resource.
 // Single-pattern resources produce a struct; multi-pattern resources produce
 // one struct per pattern plus a sealed interface and a polymorphic parser.
-func emitResource(g *protogen.GeneratedFile, r *resource, reg *registry) {
+func emitResource(g *protogen.GeneratedFile, r *resource, reg *registry) error {
 	if len(r.Patterns) == 1 {
-		emitPatternStruct(g, r, r.ParsedType.GoName, r.ParseFunc.GoName, r.FullParseFunc.GoName, "", lookupParent(r.Patterns[0], reg), r.Patterns[0])
-		return
+		parent, err := lookupParent(r.Patterns[0], reg)
+		if err != nil {
+			return err
+		}
+		emitPatternStruct(g, r, r.ParsedType.GoName, r.ParseFunc.GoName, r.FullParseFunc.GoName, "", parent, r.Patterns[0])
+		return nil
 	}
 
 	embed := "mustEmbed" + r.ParsedType.GoName
@@ -174,13 +185,18 @@ func emitResource(g *protogen.GeneratedFile, r *resource, reg *registry) {
 	for i, p := range r.Patterns {
 		typeName := typeNames[i]
 		funcName := "Parse" + typeName
+		parent, err := lookupParent(p, reg)
+		if err != nil {
+			return err
+		}
 		// Per-pattern struct + short parser only; the polymorphic full
 		// parser below handles prefix stripping, so emitting one per
 		// pattern would be dead code.
-		emitPatternStruct(g, r, typeName, funcName, "", embed, lookupParent(p, reg), p)
+		emitPatternStruct(g, r, typeName, funcName, "", embed, parent, p)
 		implNames[i] = funcName
 	}
 	emitMultiPatternInterface(g, r, embed, implNames)
+	return nil
 }
 
 // variantNames returns the Go type names for each pattern of a multi-pattern
@@ -233,14 +249,29 @@ type parentBinding struct {
 	Pattern pattern
 }
 
-func lookupParent(p pattern, reg *registry) *parentBinding {
+func lookupParent(p pattern, reg *registry) (*parentBinding, error) {
 	parentP, ok := parentPattern(p)
 	if !ok {
-		return nil
+		return nil, nil
 	}
 	parentRes, idx, found := reg.findByPattern(parentP)
 	if !found {
-		return nil
+		return nil, nil
+	}
+	matched := parentRes.Patterns[idx]
+	// Parent() assigns child fields straight into the parent struct, so the
+	// field types must line up. patternsEqual matches on Name+Var only, so
+	// Format consistency is verified here and surfaced as a codegen error.
+	for i, ps := range matched {
+		if !ps.Var {
+			continue
+		}
+		if ps.Format != p[i].Format {
+			return nil, fmt.Errorf(
+				"resource %q: segment %q format (%s) disagrees with parent %q (%s); annotate %s_id consistently on both messages",
+				resourceTypeString(reg, p), ps.Name, p[i].Format, resourceTypeString(reg, matched), ps.Format, ps.Name,
+			)
+		}
 	}
 	variant := parentRes.ParsedType
 	if len(parentRes.Patterns) > 1 {
@@ -252,8 +283,19 @@ func lookupParent(p pattern, reg *registry) *parentBinding {
 	return &parentBinding{
 		ReturnType: parentRes.ParsedType,
 		Variant:    variant,
-		Pattern:    parentRes.Patterns[idx],
+		Pattern:    matched,
+	}, nil
+}
+
+// resourceTypeString returns the declared resource type ("service/Type") that
+// owns pattern p, used in error messages. Falls back to the pattern string
+// when no resource matches (shouldn't happen for patterns coming out of the
+// registry).
+func resourceTypeString(reg *registry, p pattern) string {
+	if res, _, ok := reg.findByPattern(p); ok {
+		return res.Type.ServiceName + "/" + res.Type.TypeName
 	}
+	return patternString(p)
 }
 
 // emitPatternStruct emits a struct, its short Parse function, and the
@@ -275,7 +317,7 @@ func emitPatternStruct(g *protogen.GeneratedFile, r *resource, typeName, funcNam
 	g.P("type ", typeName, " struct {")
 	for _, s := range p {
 		if s.Var {
-			g.P(s.FieldName(), " string")
+			g.P(s.FieldName(), " ", segmentGoType(g, s))
 		}
 	}
 	g.P("}")
@@ -293,6 +335,14 @@ func emitPatternStruct(g *protogen.GeneratedFile, r *resource, typeName, funcNam
 			g.P("if parts[", i, "] == \"\" {")
 			g.P("return ", typeName, "{}, ", fmtPackage.Ident("Errorf"), "(\"parse %q: empty value for segment ", i, "\", s)")
 			g.P("}")
+			if s.Format == formatUUID4 {
+				g.P("v", i, ", err := ", uuidPackage.Ident("Parse"), "(parts[", i, "])")
+				g.P("if err != nil {")
+				g.P("return ", typeName, "{}, ", fmtPackage.Ident("Errorf"), "(\"parse %q: segment ", i, ": %w\", s, err)")
+				g.P("}")
+				g.P("out.", s.FieldName(), " = v", i)
+				continue
+			}
 			g.P("out.", s.FieldName(), " = parts[", i, "]")
 			continue
 		}
@@ -382,8 +432,21 @@ func parentPattern(p pattern) (pattern, bool) {
 	return p[:len(p)-2], true
 }
 
+// segmentGoType returns the value to feed to g.P as the Go type of a variable
+// segment's struct field. For the default string format it returns the literal
+// "string"; for formatUUID4 it returns a qualified ident into github.com/google/uuid
+// so the import is registered.
+func segmentGoType(g *protogen.GeneratedFile, s segment) any {
+	if s.Format == formatUUID4 {
+		return g.QualifiedGoIdent(uuidPackage.Ident("UUID"))
+	}
+	return "string"
+}
+
 // nameExpression builds the string-concatenation expression used in String().
 // For "projects/{project}/books/{book}" it yields: "projects/" + n.ProjectID + "/books/" + n.BookID
+// UUID4 segments render through their .String() method so the field type stays
+// uuid.UUID in the struct.
 func nameExpression(p pattern) string {
 	var parts []string
 	var literal string
@@ -399,7 +462,11 @@ func nameExpression(p pattern) string {
 		}
 		if s.Var {
 			flushLiteral()
-			parts = append(parts, "n."+s.FieldName())
+			expr := "n." + s.FieldName()
+			if s.Format == formatUUID4 {
+				expr += ".String()"
+			}
+			parts = append(parts, expr)
 			continue
 		}
 		literal += s.Name

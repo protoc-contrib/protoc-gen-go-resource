@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package tests.uuid;
+
+option go_package = "github.com/protoc-contrib/protoc-gen-go-resource/internal/generator/testpb/uuid";
+
+import "google/api/field_info.proto";
+import "google/api/resource.proto";
+
+// Collection is a single-pattern resource whose id segment is declared as a
+// UUID4 via google.api.field_info on the mirrored collection_id field.
+// The generator types CollectionName.CollectionID as uuid.UUID and validates
+// the segment at parse time.
+message Collection {
+  option (google.api.resource) = {
+    type: "example.com/Collection"
+    pattern: "collections/{collection}"
+  };
+
+  string name = 1;
+  string collection_id = 2 [(google.api.field_info).format = UUID4];
+}
+
+// Organization is a UUID-typed parent resource exercised by Item.Parent().
+message Organization {
+  option (google.api.resource) = {
+    type: "example.com/Organization"
+    pattern: "organizations/{organization}"
+  };
+
+  string name = 1;
+  string organization_id = 2 [(google.api.field_info).format = UUID4];
+}
+
+// Item exercises a parent/child pair where both segments are UUID4. Parent()
+// flows the typed organization id into OrganizationName without string
+// bridging.
+message Item {
+  option (google.api.resource) = {
+    type: "example.com/Item"
+    pattern: "organizations/{organization}/items/{item}"
+  };
+
+  string name = 1;
+  string organization_id = 2 [(google.api.field_info).format = UUID4];
+  string item_id = 3 [(google.api.field_info).format = UUID4];
+}

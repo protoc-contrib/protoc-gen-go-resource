@@ -43,16 +43,47 @@ func newMessageResource(m *protogen.Message) (*resource, error) {
 	if d.NameField != "" {
 		fieldName = d.NameField
 	}
+	formats := map[string]segmentFormat{}
 	for _, f := range m.Fields {
-		if string(f.Desc.Name()) == fieldName {
+		name := string(f.Desc.Name())
+		if name == fieldName {
 			r.NameField = f
-			break
+		}
+		if sf := segmentFormatFromField(f); sf != formatString {
+			formats[name] = sf
 		}
 	}
 	if r.NameField == nil {
 		return nil, fmt.Errorf("%v specifies %q as name field, but no field with that name exists", m.GoIdent, fieldName)
 	}
+	for _, p := range r.Patterns {
+		for i, seg := range p {
+			if !seg.Var {
+				continue
+			}
+			if f, ok := formats[seg.Name+"_id"]; ok {
+				p[i].Format = f
+			}
+		}
+	}
 	return r, nil
+}
+
+// segmentFormatFromField inspects a message field for google.api.field_info and
+// returns the corresponding segmentFormat. Fields without field_info, with an
+// unset format, or with a format the plugin doesn't type map to formatString.
+func segmentFormatFromField(f *protogen.Field) segmentFormat {
+	opts, _ := f.Desc.Options().(*descriptorpb.FieldOptions)
+	fi, _ := proto.GetExtension(opts, annotations.E_FieldInfo).(*annotations.FieldInfo)
+	if fi == nil {
+		return formatString
+	}
+	switch fi.Format {
+	case annotations.FieldInfo_UUID4:
+		return formatUUID4
+	default:
+		return formatString
+	}
 }
 
 // newFileResources returns every resource declared at file scope via

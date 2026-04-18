@@ -42,12 +42,35 @@ func newPattern(s string) (pattern, error) {
 }
 
 type segment struct {
-	Name string
-	Var  bool
+	Name   string
+	Var    bool
+	Format segmentFormat
+}
+
+// segmentFormat is the declared value type of a variable segment. It defaults
+// to formatString; other values are populated from google.api.field_info on the
+// owning resource message.
+type segmentFormat int
+
+const (
+	formatString segmentFormat = iota
+	formatUUID4
+)
+
+// String renders the format for use in codegen error messages.
+func (f segmentFormat) String() string {
+	switch f {
+	case formatUUID4:
+		return "uuid4"
+	default:
+		return "string"
+	}
 }
 
 // FieldName returns the Go struct field name for a variable segment. For
-// example the segment {project} becomes ProjectID.
+// example the segment {project} becomes ProjectID. The "ID" suffix is appended
+// literally rather than routed through strcase so the acronym survives
+// regardless of the strcase version in use (v0.3 normalizes "_ID" → "Id").
 func (s segment) FieldName() string {
-	return strcase.ToCamel(s.Name + "_ID")
+	return strcase.ToCamel(s.Name) + "ID"
 }
