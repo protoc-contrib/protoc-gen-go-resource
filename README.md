@@ -56,9 +56,9 @@ The code generator has been rewritten on top of
 - **Runtime validation** — generated parsers reject empty variable
   segments (e.g. `things/`) per AIP-122.
 - **UUID-typed segments** — declare `(google.api.field_info).format = UUID4`
-  on a mirror `<var>_id` field of the resource message to have the
-  generated struct field typed as `uuid.UUID` and validated at parse
-  time. See [UUID segments](#uuid-segments).
+  on the `<var>_id` field of a `Create<Resource>Request` (AIP-133) to
+  have the generated struct field typed as `uuid.UUID` and validated at
+  parse time. See [UUID segments](#uuid-segments).
 - **`ParseFullName()` on messages** — resource messages get both
   `ParseName()` (short form) and `ParseFullName()` (full
   `//service/...` form).
@@ -212,8 +212,10 @@ have the generated struct carry `uuid.UUID` directly — no call-site
 `uuid.Parse` boilerplate, and invalid UUIDs are rejected by
 `Parse<Type>Name` instead of surfacing later.
 
-Annotate a mirror `<var>_id` field on the resource message with
-[`google.api.field_info`](https://github.com/googleapis/googleapis/blob/master/google/api/field_info.proto):
+The annotation lives on the `<var>_id` field of the resource's
+[AIP-133](https://google.aip.dev/133) `Create<Resource>Request` —
+never on the resource message itself, which would duplicate the
+canonical `name` field and risk drift:
 
 ```proto
 import "google/api/field_info.proto";
@@ -226,15 +228,26 @@ message Collection {
   };
 
   string name = 1;
+}
+
+message CreateCollectionRequest {
+  Collection collection = 1;
   string collection_id = 2 [(google.api.field_info).format = UUID4];
 }
 ```
 
-The matching rule is: for each pattern variable `{x}`, if the resource
-message carries a field named `x_id` with
-`field_info.format = UUID4`, segment `{x}` is typed as `uuid.UUID`.
-Other fields are unaffected. With the annotation above the generator
-emits:
+The matching rule is: for each pattern variable `{x}` of resource
+`<R>`, the plugin looks for a top- or nested-level message named
+`Create<R>Request` (anywhere in the compilation unit) and reads
+`google.api.field_info` off its `x_id` field. When the format is
+`UUID4`, segment `{x}` is typed as `uuid.UUID`. Parent segments of a
+child pattern inherit their format from the parent resource's own
+Create request — so `{organization}` in
+`organizations/{organization}/items/{item}` picks up `uuid.UUID` from
+`CreateOrganizationRequest.organization_id`, not from
+`CreateItemRequest`.
+
+With the annotation above the generator emits:
 
 ```go
 type CollectionName struct {
@@ -258,19 +271,20 @@ func (n CollectionName) String() string {
 
 `github.com/google/uuid` is imported automatically.
 
-**Parent/child consistency.** If a child resource declares `{x}` as
-UUID4, every parent resource that shares that variable name must declare
-it as UUID4 too (via the same annotation on its own mirror field).
-Otherwise `Parent()` cannot flow the typed field into the parent struct
-and the generator fails with an explicit error like
+**Parent/child consistency.** Because each segment's format is sourced
+from the Create request of the resource that owns it, a child pattern
+and its parent always agree by construction. If you hand-edit segment
+formats (e.g. via a test fixture that bypasses the annotator) and they
+diverge, the generator fails with an explicit error like
 `resource "example.com/Item": segment "organization" format (uuid4)
 disagrees with parent "example.com/Organization" (string); annotate
 organization_id consistently on both messages`.
 
-**Scope.** File-level `google.api.resource_definition` resources have
-no backing message and therefore no field to carry `field_info` —
-their segments stay `string`. Only `FORMAT_UUID4` is recognized today;
-other formats (`IPV4`, `IPV6`, …) fall back to `string`.
+**Scope.** Resources without a matching `Create<Resource>Request` in
+the compilation unit — file-level `google.api.resource_definition`
+entries, read-only resources, services that don't follow AIP-133 —
+keep `string` segments. Only `FORMAT_UUID4` is recognized today; other
+formats (`IPV4`, `IPV6`, …) fall back to `string`.
 
 ## CI Integration
 

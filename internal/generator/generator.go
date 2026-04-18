@@ -39,6 +39,7 @@ func Generate(plugin *protogen.Plugin, opts *Options) error {
 			return err
 		}
 	}
+	reg.annotateFormats()
 
 	for _, f := range plugin.Files {
 		if !f.Generate {
@@ -60,14 +61,23 @@ type registry struct {
 	byFile    map[*protogen.File][]*resource
 	byType    map[resourceType]*resource
 	byMessage map[*protogen.Message]*resource
-	all       []*resource // insertion order for deterministic lookups
+	// createRequests indexes top- and nested-level messages whose proto name
+	// matches "Create<TypeName>Request" (AIP-133). The annotator reads
+	// google.api.field_info off the request's <seg>_id field to decide whether
+	// a pattern variable is typed as uuid.UUID. Last-writer-wins on name
+	// collisions across files — AIP-133 uses one Create request per resource
+	// type, so a collision indicates a user-side mistake we don't try to
+	// diagnose here.
+	createRequests map[string]*protogen.Message
+	all            []*resource // insertion order for deterministic lookups
 }
 
 func newRegistry() *registry {
 	return &registry{
-		byFile:    map[*protogen.File][]*resource{},
-		byType:    map[resourceType]*resource{},
-		byMessage: map[*protogen.Message]*resource{},
+		byFile:         map[*protogen.File][]*resource{},
+		byType:         map[resourceType]*resource{},
+		byMessage:      map[*protogen.Message]*resource{},
+		createRequests: map[string]*protogen.Message{},
 	}
 }
 
@@ -129,6 +139,10 @@ func (r *registry) walkFile(f *protogen.File) error {
 			if res != nil {
 				r.insert(f, res)
 			}
+			name := string(m.Desc.Name())
+			if strings.HasPrefix(name, "Create") && strings.HasSuffix(name, "Request") {
+				r.createRequests[name] = m
+			}
 			if err := walk(m.Messages); err != nil {
 				return err
 			}
@@ -136,6 +150,43 @@ func (r *registry) walkFile(f *protogen.File) error {
 		return nil
 	}
 	return walk(f.Messages)
+}
+
+// annotateFormats fills segment.Format for every variable segment whose
+// owning resource has a Create<Resource>Request with
+// google.api.field_info.format set on its <seg>_id field. The owning
+// resource is the one whose pattern matches the prefix of p up to and
+// including the segment — so a child pattern's parent segments pick up
+// their format from the parent resource's Create request, and
+// lookupParent's consistency check is automatically satisfied.
+func (r *registry) annotateFormats() {
+	for _, res := range r.all {
+		for pi, p := range res.Patterns {
+			for si, seg := range p {
+				if !seg.Var {
+					continue
+				}
+				owner, _, ok := r.findByPattern(p[:si+1])
+				if !ok {
+					continue
+				}
+				crMsg, ok := r.createRequests["Create"+owner.Type.TypeName+"Request"]
+				if !ok {
+					continue
+				}
+				idField := seg.Name + "_id"
+				for _, f := range crMsg.Fields {
+					if string(f.Desc.Name()) != idField {
+						continue
+					}
+					if sf := segmentFormatFromField(f); sf != formatString {
+						res.Patterns[pi][si].Format = sf
+					}
+					break
+				}
+			}
+		}
+	}
 }
 
 func generateFile(plugin *protogen.Plugin, f *protogen.File, reg *registry, opts *Options) error {

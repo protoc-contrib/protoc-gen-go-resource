@@ -22,14 +22,12 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Collection is a single-pattern resource whose id segment is declared as a
-// UUID4 via google.api.field_info on the mirrored collection_id field.
-// The generator types CollectionName.CollectionID as uuid.UUID and validates
-// the segment at parse time.
+// Collection is a single-pattern resource. Its terminal segment is typed
+// uuid.UUID because CreateCollectionRequest.collection_id carries
+// field_info.format = UUID4 (AIP-133).
 type Collection struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	CollectionId  string                 `protobuf:"bytes,2,opt,name=collection_id,json=collectionId,proto3" json:"collection_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -71,25 +69,70 @@ func (x *Collection) GetName() string {
 	return ""
 }
 
-func (x *Collection) GetCollectionId() string {
+type CreateCollectionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Collection    *Collection            `protobuf:"bytes,1,opt,name=collection,proto3" json:"collection,omitempty"`
+	CollectionId  string                 `protobuf:"bytes,2,opt,name=collection_id,json=collectionId,proto3" json:"collection_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateCollectionRequest) Reset() {
+	*x = CreateCollectionRequest{}
+	mi := &file_uuid_uuid_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateCollectionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateCollectionRequest) ProtoMessage() {}
+
+func (x *CreateCollectionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_uuid_uuid_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateCollectionRequest.ProtoReflect.Descriptor instead.
+func (*CreateCollectionRequest) Descriptor() ([]byte, []int) {
+	return file_uuid_uuid_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *CreateCollectionRequest) GetCollection() *Collection {
+	if x != nil {
+		return x.Collection
+	}
+	return nil
+}
+
+func (x *CreateCollectionRequest) GetCollectionId() string {
 	if x != nil {
 		return x.CollectionId
 	}
 	return ""
 }
 
-// Organization is a UUID-typed parent resource exercised by Item.Parent().
+// Organization is the parent resource exercised by Item.Parent(). Its
+// terminal segment is typed via CreateOrganizationRequest.organization_id.
 type Organization struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Name           string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Organization) Reset() {
 	*x = Organization{}
-	mi := &file_uuid_uuid_proto_msgTypes[1]
+	mi := &file_uuid_uuid_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -101,7 +144,7 @@ func (x *Organization) String() string {
 func (*Organization) ProtoMessage() {}
 
 func (x *Organization) ProtoReflect() protoreflect.Message {
-	mi := &file_uuid_uuid_proto_msgTypes[1]
+	mi := &file_uuid_uuid_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -114,7 +157,7 @@ func (x *Organization) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Organization.ProtoReflect.Descriptor instead.
 func (*Organization) Descriptor() ([]byte, []int) {
-	return file_uuid_uuid_proto_rawDescGZIP(), []int{1}
+	return file_uuid_uuid_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Organization) GetName() string {
@@ -124,28 +167,72 @@ func (x *Organization) GetName() string {
 	return ""
 }
 
-func (x *Organization) GetOrganizationId() string {
+type CreateOrganizationRequest struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Organization   *Organization          `protobuf:"bytes,1,opt,name=organization,proto3" json:"organization,omitempty"`
+	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *CreateOrganizationRequest) Reset() {
+	*x = CreateOrganizationRequest{}
+	mi := &file_uuid_uuid_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateOrganizationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateOrganizationRequest) ProtoMessage() {}
+
+func (x *CreateOrganizationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_uuid_uuid_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateOrganizationRequest.ProtoReflect.Descriptor instead.
+func (*CreateOrganizationRequest) Descriptor() ([]byte, []int) {
+	return file_uuid_uuid_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *CreateOrganizationRequest) GetOrganization() *Organization {
+	if x != nil {
+		return x.Organization
+	}
+	return nil
+}
+
+func (x *CreateOrganizationRequest) GetOrganizationId() string {
 	if x != nil {
 		return x.OrganizationId
 	}
 	return ""
 }
 
-// Item exercises a parent/child pair where both segments are UUID4. Parent()
-// flows the typed organization id into OrganizationName without string
-// bridging.
+// Item exercises a parent/child pair where both segments are UUID4. The
+// {organization} segment inherits its format from Organization's Create
+// request; {item} comes from CreateItemRequest.item_id. Parent() flows the
+// typed organization id into OrganizationName without string bridging.
 type Item struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Name           string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	OrganizationId string                 `protobuf:"bytes,2,opt,name=organization_id,json=organizationId,proto3" json:"organization_id,omitempty"`
-	ItemId         string                 `protobuf:"bytes,3,opt,name=item_id,json=itemId,proto3" json:"item_id,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Item) Reset() {
 	*x = Item{}
-	mi := &file_uuid_uuid_proto_msgTypes[2]
+	mi := &file_uuid_uuid_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -157,7 +244,7 @@ func (x *Item) String() string {
 func (*Item) ProtoMessage() {}
 
 func (x *Item) ProtoReflect() protoreflect.Message {
-	mi := &file_uuid_uuid_proto_msgTypes[2]
+	mi := &file_uuid_uuid_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -170,7 +257,7 @@ func (x *Item) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Item.ProtoReflect.Descriptor instead.
 func (*Item) Descriptor() ([]byte, []int) {
-	return file_uuid_uuid_proto_rawDescGZIP(), []int{2}
+	return file_uuid_uuid_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *Item) GetName() string {
@@ -180,14 +267,60 @@ func (x *Item) GetName() string {
 	return ""
 }
 
-func (x *Item) GetOrganizationId() string {
+type CreateItemRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Parent        string                 `protobuf:"bytes,1,opt,name=parent,proto3" json:"parent,omitempty"`
+	Item          *Item                  `protobuf:"bytes,2,opt,name=item,proto3" json:"item,omitempty"`
+	ItemId        string                 `protobuf:"bytes,3,opt,name=item_id,json=itemId,proto3" json:"item_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateItemRequest) Reset() {
+	*x = CreateItemRequest{}
+	mi := &file_uuid_uuid_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateItemRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateItemRequest) ProtoMessage() {}
+
+func (x *CreateItemRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_uuid_uuid_proto_msgTypes[5]
 	if x != nil {
-		return x.OrganizationId
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateItemRequest.ProtoReflect.Descriptor instead.
+func (*CreateItemRequest) Descriptor() ([]byte, []int) {
+	return file_uuid_uuid_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *CreateItemRequest) GetParent() string {
+	if x != nil {
+		return x.Parent
 	}
 	return ""
 }
 
-func (x *Item) GetItemId() string {
+func (x *CreateItemRequest) GetItem() *Item {
+	if x != nil {
+		return x.Item
+	}
+	return nil
+}
+
+func (x *CreateItemRequest) GetItemId() string {
 	if x != nil {
 		return x.ItemId
 	}
@@ -199,21 +332,29 @@ var File_uuid_uuid_proto protoreflect.FileDescriptor
 const file_uuid_uuid_proto_rawDesc = "" +
 	"\n" +
 	"\x0fuuid/uuid.proto\x12\n" +
-	"tests.uuid\x1a\x1bgoogle/api/field_info.proto\x1a\x19google/api/resource.proto\"\x86\x01\n" +
+	"tests.uuid\x1a\x1bgoogle/api/field_info.proto\x1a\x19google/api/resource.proto\"W\n" +
 	"\n" +
 	"Collection\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x12-\n" +
-	"\rcollection_id\x18\x02 \x01(\tB\b\xe2\x8c\xcf\xd7\b\x02\b\x01R\fcollectionId:5\xeaA2\n" +
-	"\x16example.com/Collection\x12\x18collections/{collection}\"\x92\x01\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name:5\xeaA2\n" +
+	"\x16example.com/Collection\x12\x18collections/{collection}\"\x80\x01\n" +
+	"\x17CreateCollectionRequest\x126\n" +
+	"\n" +
+	"collection\x18\x01 \x01(\v2\x16.tests.uuid.CollectionR\n" +
+	"collection\x12-\n" +
+	"\rcollection_id\x18\x02 \x01(\tB\b\xe2\x8c\xcf\xd7\b\x02\b\x01R\fcollectionId\"_\n" +
 	"\fOrganization\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x121\n" +
-	"\x0forganization_id\x18\x02 \x01(\tB\b\xe2\x8c\xcf\xd7\b\x02\b\x01R\x0eorganizationId:;\xeaA8\n" +
-	"\x18example.com/Organization\x12\x1corganizations/{organization}\"\xb2\x01\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name:;\xeaA8\n" +
+	"\x18example.com/Organization\x12\x1corganizations/{organization}\"\x8c\x01\n" +
+	"\x19CreateOrganizationRequest\x12<\n" +
+	"\forganization\x18\x01 \x01(\v2\x18.tests.uuid.OrganizationR\forganization\x121\n" +
+	"\x0forganization_id\x18\x02 \x01(\tB\b\xe2\x8c\xcf\xd7\b\x02\b\x01R\x0eorganizationId\"\\\n" +
 	"\x04Item\x12\x12\n" +
-	"\x04name\x18\x01 \x01(\tR\x04name\x121\n" +
-	"\x0forganization_id\x18\x02 \x01(\tB\b\xe2\x8c\xcf\xd7\b\x02\b\x01R\x0eorganizationId\x12!\n" +
-	"\aitem_id\x18\x03 \x01(\tB\b\xe2\x8c\xcf\xd7\b\x02\b\x01R\x06itemId:@\xeaA=\n" +
-	"\x10example.com/Item\x12)organizations/{organization}/items/{item}BQZOgithub.com/protoc-contrib/protoc-gen-go-resource/internal/generator/testpb/uuidb\x06proto3"
+	"\x04name\x18\x01 \x01(\tR\x04name:@\xeaA=\n" +
+	"\x10example.com/Item\x12)organizations/{organization}/items/{item}\"t\n" +
+	"\x11CreateItemRequest\x12\x16\n" +
+	"\x06parent\x18\x01 \x01(\tR\x06parent\x12$\n" +
+	"\x04item\x18\x02 \x01(\v2\x10.tests.uuid.ItemR\x04item\x12!\n" +
+	"\aitem_id\x18\x03 \x01(\tB\b\xe2\x8c\xcf\xd7\b\x02\b\x01R\x06itemIdBQZOgithub.com/protoc-contrib/protoc-gen-go-resource/internal/generator/testpb/uuidb\x06proto3"
 
 var (
 	file_uuid_uuid_proto_rawDescOnce sync.Once
@@ -227,18 +368,24 @@ func file_uuid_uuid_proto_rawDescGZIP() []byte {
 	return file_uuid_uuid_proto_rawDescData
 }
 
-var file_uuid_uuid_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_uuid_uuid_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_uuid_uuid_proto_goTypes = []any{
-	(*Collection)(nil),   // 0: tests.uuid.Collection
-	(*Organization)(nil), // 1: tests.uuid.Organization
-	(*Item)(nil),         // 2: tests.uuid.Item
+	(*Collection)(nil),                // 0: tests.uuid.Collection
+	(*CreateCollectionRequest)(nil),   // 1: tests.uuid.CreateCollectionRequest
+	(*Organization)(nil),              // 2: tests.uuid.Organization
+	(*CreateOrganizationRequest)(nil), // 3: tests.uuid.CreateOrganizationRequest
+	(*Item)(nil),                      // 4: tests.uuid.Item
+	(*CreateItemRequest)(nil),         // 5: tests.uuid.CreateItemRequest
 }
 var file_uuid_uuid_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	0, // 0: tests.uuid.CreateCollectionRequest.collection:type_name -> tests.uuid.Collection
+	2, // 1: tests.uuid.CreateOrganizationRequest.organization:type_name -> tests.uuid.Organization
+	4, // 2: tests.uuid.CreateItemRequest.item:type_name -> tests.uuid.Item
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_uuid_uuid_proto_init() }
@@ -252,7 +399,7 @@ func file_uuid_uuid_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_uuid_uuid_proto_rawDesc), len(file_uuid_uuid_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

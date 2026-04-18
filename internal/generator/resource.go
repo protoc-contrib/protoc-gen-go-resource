@@ -43,28 +43,14 @@ func newMessageResource(m *protogen.Message) (*resource, error) {
 	if d.NameField != "" {
 		fieldName = d.NameField
 	}
-	formats := map[string]segmentFormat{}
 	for _, f := range m.Fields {
-		name := string(f.Desc.Name())
-		if name == fieldName {
+		if string(f.Desc.Name()) == fieldName {
 			r.NameField = f
-		}
-		if sf := segmentFormatFromField(f); sf != formatString {
-			formats[name] = sf
+			break
 		}
 	}
 	if r.NameField == nil {
 		return nil, fmt.Errorf("%v specifies %q as name field, but no field with that name exists", m.GoIdent, fieldName)
-	}
-	for _, p := range r.Patterns {
-		for i, seg := range p {
-			if !seg.Var {
-				continue
-			}
-			if f, ok := formats[seg.Name+"_id"]; ok {
-				p[i].Format = f
-			}
-		}
 	}
 	return r, nil
 }
