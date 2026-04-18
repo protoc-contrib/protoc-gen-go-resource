@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/protoc-contrib/protoc-gen-go-resource/compare/v1.3.0...v1.3.1) (2026-04-18)
+
+
+### Bug Fixes
+
+* update vendorHash in flake.nix ([abba9f4](https://github.com/protoc-contrib/protoc-gen-go-resource/commit/abba9f4c1466532a0d419912f487ed139017d015))
+
 ## [1.3.0](https://github.com/protoc-contrib/protoc-gen-go-resource/compare/v1.2.0...v1.3.0) (2026-04-18)
 
 
