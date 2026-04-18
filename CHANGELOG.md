@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/protoc-contrib/protoc-gen-go-resource/compare/v1.2.0...v1.3.0) (2026-04-18)
+
+
+### Features
+
+* add UUID4 segment type support ([c008bd3](https://github.com/protoc-contrib/protoc-gen-go-resource/commit/c008bd3470e85307287583feafafb2117887a077))
+
 ## [1.2.0](https://github.com/protoc-contrib/protoc-gen-go-resource/compare/v1.1.0...v1.2.0) (2026-04-17)
 
 
