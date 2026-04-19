@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/protoc-contrib/protoc-gen-go-resource/compare/v1.3.1...v1.4.0) (2026-04-19)
+
+
+### Features
+
+* add Format and Parse helpers for single-ID resources ([0a1ae91](https://github.com/protoc-contrib/protoc-gen-go-resource/commit/0a1ae9124fffec1fa7a2d92c0a926b02a0eb5cce))
+
 ## [1.3.1](https://github.com/protoc-contrib/protoc-gen-go-resource/compare/v1.3.0...v1.3.1) (2026-04-18)
 
 
