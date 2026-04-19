@@ -68,6 +68,17 @@ func (n *CollectionName) UnmarshalText(b []byte) error {
 	return nil
 }
 
+// FormatCollectionName returns the relative resource name for a "example.com/Collection" with the given id.
+func FormatCollectionName(id uuid.UUID) string {
+	return CollectionName{CollectionID: id}.String()
+}
+
+// ParseCollectionID parses s as CollectionName and returns its CollectionID field.
+func ParseCollectionID(s string) (uuid.UUID, error) {
+	parsed, err := ParseCollectionName(s)
+	return parsed.CollectionID, err
+}
+
 // OrganizationName is the parsed form of a "example.com/Organization" resource name (pattern "organizations/{organization}").
 type OrganizationName struct {
 	OrganizationID uuid.UUID
@@ -125,6 +136,17 @@ func (n *OrganizationName) UnmarshalText(b []byte) error {
 	}
 	*n = parsed
 	return nil
+}
+
+// FormatOrganizationName returns the relative resource name for a "example.com/Organization" with the given id.
+func FormatOrganizationName(id uuid.UUID) string {
+	return OrganizationName{OrganizationID: id}.String()
+}
+
+// ParseOrganizationID parses s as OrganizationName and returns its OrganizationID field.
+func ParseOrganizationID(s string) (uuid.UUID, error) {
+	parsed, err := ParseOrganizationName(s)
+	return parsed.OrganizationID, err
 }
 
 // ItemName is the parsed form of a "example.com/Item" resource name (pattern "organizations/{organization}/items/{item}").

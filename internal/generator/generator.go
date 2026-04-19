@@ -227,6 +227,7 @@ func emitResource(g *protogen.GeneratedFile, r *resource, reg *registry) error {
 			return err
 		}
 		emitPatternStruct(g, r, r.ParsedType.GoName, r.ParseFunc.GoName, r.FullParseFunc.GoName, "", parent, r.Patterns[0])
+		emitSingleIDHelpers(g, r, r.Patterns[0])
 		return nil
 	}
 
@@ -248,6 +249,48 @@ func emitResource(g *protogen.GeneratedFile, r *resource, reg *registry) error {
 	}
 	emitMultiPatternInterface(g, r, embed, implNames)
 	return nil
+}
+
+// emitSingleIDHelpers emits Format<TypeName>Name and Parse<TypeName>ID for
+// single-pattern resources whose pattern has exactly one variable segment
+// with a typed (non-string) format. The helpers are plain top-level functions
+// so code generators like goverter can consume them via their "extend"
+// directive — something a method expression or struct-literal conversion
+// can't express. The string case is intentionally skipped: the signatures
+// would collide across resources and the underlying conversion is a no-op
+// anyway, so struct-literal use remains preferable there.
+func emitSingleIDHelpers(g *protogen.GeneratedFile, r *resource, p pattern) {
+	var varCount int
+	var varSeg segment
+	for _, s := range p {
+		if s.Var {
+			varCount++
+			varSeg = s
+		}
+	}
+	if varCount != 1 || varSeg.Format == formatString {
+		return
+	}
+
+	typeName := r.ParsedType.GoName
+	idType := segmentGoType(g, varSeg)
+	fieldName := varSeg.FieldName()
+	formatFn := "Format" + typeName
+	parseFn := "Parse" + r.Type.TypeName + "ID"
+	fullType := r.Type.ServiceName + "/" + r.Type.TypeName
+
+	g.P("// ", formatFn, " returns the relative resource name for a ", strconv.Quote(fullType), " with the given id.")
+	g.P("func ", formatFn, "(id ", idType, ") string {")
+	g.P("return ", typeName, "{", fieldName, ": id}.String()")
+	g.P("}")
+	g.P()
+
+	g.P("// ", parseFn, " parses s as ", typeName, " and returns its ", fieldName, " field.")
+	g.P("func ", parseFn, "(s string) (", idType, ", error) {")
+	g.P("parsed, err := ", r.ParseFunc.GoName, "(s)")
+	g.P("return parsed.", fieldName, ", err")
+	g.P("}")
+	g.P()
 }
 
 // variantNames returns the Go type names for each pattern of a multi-pattern
